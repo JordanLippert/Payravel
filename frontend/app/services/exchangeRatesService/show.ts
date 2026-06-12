@@ -3,6 +3,7 @@ import { httpClient } from '../httpClient'
 interface ExchangeRate {
   currency: string
   rate: number
+  source?: string
   fetched_at: string
   expires_at: string
 }
