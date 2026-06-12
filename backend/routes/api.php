@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ExchangeRateController;
+use App\Http\Controllers\MetricsController;
 use App\Http\Controllers\PaymentRequestController;
+use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('auth')->group(function () {
@@ -15,6 +17,18 @@ Route::prefix('auth')->group(function () {
 
 Route::middleware('auth:api')->group(function () {
     Route::get('exchange-rates/{currency}', [ExchangeRateController::class, 'show']);
+
+    Route::get('user',           [ProfileController::class, 'show']);
+    Route::patch('user',         [ProfileController::class, 'update']);
+    Route::post('user/password', [ProfileController::class, 'changePassword']);
+    Route::post('user/avatar',   [ProfileController::class, 'uploadAvatar']);
+
+    Route::prefix('metrics')->group(function () {
+        Route::get('total',    [MetricsController::class, 'total']);
+        Route::get('pending',  [MetricsController::class, 'pending']);
+        Route::get('approved', [MetricsController::class, 'approved']);
+        Route::get('rejected', [MetricsController::class, 'rejected']);
+    });
 
     Route::get('payment-requests',               [PaymentRequestController::class, 'index']);
     Route::post('payment-requests',              [PaymentRequestController::class, 'store']);
