@@ -1,0 +1,200 @@
+<script setup lang="ts">
+import { useAuthStore } from '~/stores/auth'
+import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { useToast } from 'vue-toastification'
+import { formatEur } from '~/utils/formatCurrency'
+import { CURRENCIES } from '~/config/constants'
+
+definePageMeta({ middleware: 'auth' })
+
+const auth = useAuthStore()
+const toast = useToast()
+
+const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
+
+const nav = computed(() => [
+  { label: 'Fila de aprovação', to: '/finance' },
+  { label: 'Histórico', to: '/finance/history', active: true },
+  { label: 'Relatórios', to: '/finance/reports' },
+])
+
+type FilterValue = 'all' | 'approved' | 'rejected' | 'expired'
+
+const FILTERS: { value: FilterValue; label: string }[] = [
+  { value: 'all',      label: 'Todas' },
+  { value: 'approved', label: 'Aprovadas' },
+  { value: 'rejected', label: 'Rejeitadas' },
+  { value: 'expired',  label: 'Expiradas' },
+]
+
+const slideDirection = ref<'left' | 'right'>('left')
+
+const all = ref<PaymentRequest[]>([])
+const loading = ref(false)
+const statusFilter = ref<FilterValue>('all')
+
+const resolved = computed(() =>
+  all.value.filter(r => r.status !== 'pending')
+)
+
+const requests = computed(() =>
+  statusFilter.value === 'all'
+    ? resolved.value
+    : resolved.value.filter(r => r.status === statusFilter.value)
+)
+
+const counts = computed(() => ({
+  all:      resolved.value.length,
+  approved: resolved.value.filter(r => r.status === 'approved').length,
+  rejected: resolved.value.filter(r => r.status === 'rejected').length,
+  expired:  resolved.value.filter(r => r.status === 'expired').length,
+}))
+
+async function setFilter(val: FilterValue) {
+  if (val === statusFilter.value) return
+  const oldIdx = FILTERS.findIndex(f => f.value === statusFilter.value)
+  const newIdx = FILTERS.findIndex(f => f.value === val)
+  slideDirection.value = newIdx > oldIdx ? 'left' : 'right'
+  statusFilter.value = val
+}
+
+async function fetch() {
+  loading.value = true
+  try {
+    all.value = await paymentRequestsService.list()
+  } catch {
+    toast.error('Erro ao carregar histórico.')
+  } finally {
+    loading.value = false
+  }
+}
+
+function formatDate(date?: string) {
+  if (!date) return '—'
+  return new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+    .format(new Date(date))
+    .replace('.', '')
+}
+
+onMounted(fetch)
+</script>
+
+<template>
+  <div>
+    <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
+
+    <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
+      <div class="flex items-end justify-between mb-6">
+        <div>
+          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Histórico</h1>
+          <p class="text-sm" style="color: var(--text-tertiary);">Requisições já revisadas ou expiradas.</p>
+        </div>
+
+        <!-- Filter pill group -->
+        <div
+          class="inline-flex relative"
+          style="border: 0.5px solid var(--border-subtle); border-radius: 9px; padding: 3px; background: var(--bg-elevated); gap: 2px;"
+        >
+          <button
+            v-for="opt in FILTERS"
+            :key="opt.value"
+            @click="setFilter(opt.value)"
+            class="relative text-sm transition-colors duration-150"
+            style="padding: 5px 14px; border-radius: 6px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;"
+            :style="{
+              background: statusFilter === opt.value ? 'var(--bg-surface)' : 'transparent',
+              color: statusFilter === opt.value ? 'var(--text-primary)' : 'var(--text-muted)',
+              fontWeight: statusFilter === opt.value ? '500' : '400',
+              boxShadow: statusFilter === opt.value ? '0 1px 4px rgba(0,0,0,0.25)' : 'none',
+            }"
+          >
+            {{ opt.label }}
+            <span
+              v-if="counts[opt.value] > 0"
+              class="text-xs"
+              style="padding: 1px 6px; border-radius: 99px; font-variant-numeric: tabular-nums;"
+              :style="{
+                background: statusFilter === opt.value ? 'var(--border-subtle)' : 'transparent',
+                color: statusFilter === opt.value ? 'var(--text-secondary)' : 'var(--text-muted)',
+              }"
+            >{{ counts[opt.value] }}</span>
+          </button>
+        </div>
+      </div>
+
+      <UiCard :padded="false">
+        <div v-if="loading" class="py-10 text-center text-sm" style="color: var(--text-muted);">Carregando...</div>
+
+        <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
+          <div v-if="!loading" :key="statusFilter">
+            <div v-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
+              Nenhuma requisição encontrada.
+            </div>
+
+            <div v-else class="overflow-x-auto">
+              <table class="w-full" style="border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 0.5px solid var(--border-subtle);">
+                    <th
+                      v-for="h in ['Funcionário / Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Status', 'Revisado em']"
+                      :key="h"
+                      class="text-left font-medium"
+                      style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
+                    >{{ h }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr
+                    v-for="(req, i) in requests"
+                    :key="req.id"
+                    :style="{ borderBottom: i < requests.length - 1 ? '0.5px solid var(--border-subtle)' : 'none' }"
+                  >
+                    <td style="padding: 14px 16px;">
+                      <div style="font-size: 14px; color: var(--text-primary); font-weight: 500;">{{ req.user?.name ?? '—' }}</div>
+                      <div class="mt-0.5" style="font-size: 12px; color: var(--text-muted);">{{ req.description }}</div>
+                    </td>
+                    <td style="padding: 14px 16px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 14px; color: var(--text-secondary);">
+                      {{ new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(req.amount_local) }}
+                    </td>
+                    <td style="padding: 14px 16px; font-size: 14px; color: var(--text-secondary);">
+                      <span class="inline-flex items-center" style="gap: 6px;">
+                        <span style="font-size: 15px;">{{ CURRENCY_FLAG[req.currency] ?? '' }}</span>
+                        {{ req.currency }}
+                      </span>
+                    </td>
+                    <td style="padding: 14px 16px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 14px; color: var(--text-primary); font-weight: 500;">
+                      {{ formatEur(req.amount_eur) }}
+                    </td>
+                    <td style="padding: 14px 16px;">
+                      <UiBadge :status="req.status" />
+                    </td>
+                    <td style="padding: 14px 16px; font-size: 13px; color: var(--text-tertiary); white-space: nowrap;">
+                      {{ formatDate(req.reviewed_at ?? req.created_at) }}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </Transition>
+      </UiCard>
+    </main>
+  </div>
+</template>
+
+<style scoped>
+.slide-left-enter-active,
+.slide-left-leave-active,
+.slide-right-enter-active,
+.slide-right-leave-active {
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+/* slide left: entra da direita, sai pela esquerda */
+.slide-left-enter-from  { opacity: 0; transform: translateX(24px); }
+.slide-left-leave-to    { opacity: 0; transform: translateX(-24px); }
+
+/* slide right: entra da esquerda, sai pela direita */
+.slide-right-enter-from { opacity: 0; transform: translateX(-24px); }
+.slide-right-leave-to   { opacity: 0; transform: translateX(24px); }
+</style>
