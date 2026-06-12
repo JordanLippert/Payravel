@@ -19,7 +19,7 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
           Solicite, converta e aprove reembolsos da sua equipe global — câmbio ao vivo, tudo em EUR.
         </p>
       </div>
-      <p class="text-white/40 text-sm">© 2026 Payravel · Buzzvel</p>
+      <p class="text-white/40 text-sm">© 2026 Payravel · Jordan Lippert</p>
     </div>
 
     <!-- Right panel -->

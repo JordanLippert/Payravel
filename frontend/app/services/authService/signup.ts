@@ -8,8 +8,12 @@ interface SignupPayload {
   currency?: string
   country?: string
 }
-interface BackendAuthResponse { token: string; data: { name: string; role: string } }
-interface AuthResponse { token: string; user: { name: string; role: string } }
+interface BackendUser {
+  name: string; email: string; role: string
+  currency?: string; country?: string; avatar_url?: string | null
+}
+interface BackendAuthResponse { token: string; data: BackendUser }
+interface AuthResponse { token: string; user: BackendUser }
 
 export async function signup(payload: SignupPayload): Promise<AuthResponse> {
   const { data } = await httpClient.post<BackendAuthResponse>('/api/auth/register', payload)

@@ -4,7 +4,10 @@ import { authService } from '~/services/authService'
 
 interface User {
   name: string
+  email: string
   role: string
+  currency?: string
+  avatar_url?: string | null
 }
 
 export const useAuthStore = defineStore('auth', () => {
