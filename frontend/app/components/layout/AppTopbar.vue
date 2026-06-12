@@ -1,0 +1,94 @@
+<!-- frontend/components/layout/AppTopbar.vue -->
+<script setup lang="ts">
+import { ref } from 'vue'
+import { onClickOutside } from '@vueuse/core'
+import { LogOut } from '@lucide/vue'
+import { useAuthStore } from '~/stores/auth'
+
+interface NavItem { label: string; active?: boolean; to?: string }
+interface User { name: string; role?: string | null }
+
+const props = withDefaults(defineProps<{
+  nav?: NavItem[]
+  user?: User
+}>(), {
+  nav: () => [],
+  user: () => ({ name: '' }),
+})
+
+const emit = defineEmits<{ nav: [item: NavItem] }>()
+
+const logoHover = ref(false)
+const menuOpen = ref(false)
+const menuRef = ref<HTMLElement>()
+
+onClickOutside(menuRef, () => { menuOpen.value = false })
+
+const auth = useAuthStore()
+const router = useRouter()
+
+async function logout() {
+  menuOpen.value = false
+  await auth.logout()
+  await router.push('/login')
+}
+</script>
+
+<template>
+  <header
+    class="flex items-center gap-8 h-[60px] px-6 font-sans"
+    style="background: var(--bg-surface); border-bottom: 0.5px solid var(--border-subtle);"
+  >
+    <NuxtLink to="/" class="flex items-center" @mouseenter="logoHover = true" @mouseleave="logoHover = false">
+      <AppLogo :size="48" :animated="logoHover" />
+    </NuxtLink>
+
+    <nav class="flex items-center gap-1">
+      <NuxtLink
+        v-for="item in nav"
+        :key="item.label"
+        :to="item.to || '/'"
+        class="px-3 py-1.5 rounded-sm text-sm transition-colors duration-[120ms]"
+        :style="{
+          fontWeight: item.active ? 500 : 400,
+          color: item.active ? 'var(--text-primary)' : 'var(--text-tertiary)',
+        }"
+      >{{ item.label }}</NuxtLink>
+    </nav>
+
+    <div class="ml-auto relative" ref="menuRef">
+      <button
+        type="button"
+        class="cursor-pointer bg-transparent border-none p-0"
+        @click="menuOpen = !menuOpen"
+      >
+        <UiPill :name="user.name" :role="user.role ?? null" />
+      </button>
+
+      <Transition name="dropdown">
+        <div
+          v-if="menuOpen"
+          class="absolute right-0 top-[calc(100%+8px)] z-50 rounded-md border-[0.5px] py-1 min-w-[140px]"
+          :style="{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-menu)' }"
+        >
+          <button
+            type="button"
+            class="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors duration-[120ms] font-sans"
+            style="background: transparent; border: none; cursor: pointer; color: var(--status-rejected-fg);"
+            @mouseenter="($event.currentTarget as HTMLElement).style.background = 'var(--status-rejected-bg)'"
+            @mouseleave="($event.currentTarget as HTMLElement).style.background = 'transparent'"
+            @click="logout"
+          >
+            Sair
+            <LogOut :size="14" />
+          </button>
+        </div>
+      </Transition>
+    </div>
+  </header>
+</template>
+
+<style scoped>
+.dropdown-enter-active, .dropdown-leave-active { transition: opacity 120ms ease, transform 120ms ease; }
+.dropdown-enter-from, .dropdown-leave-to { opacity: 0; transform: translateY(-4px); }
+</style>
