@@ -17,8 +17,8 @@ class RegisterRequest extends FormRequest
             'name'     => ['required', 'string', 'max:255'],
             'email'    => ['required', 'email', 'unique:users'],
             'password' => ['required', 'confirmed', 'min:8'],
-            'currency' => ['required', 'string', 'size:3'],
-            'country'  => ['required', 'string', 'max:100'],
+            'currency' => ['nullable', 'string', 'size:3'],
+            'country'  => ['nullable', 'string', 'max:100'],
         ];
     }
 }
