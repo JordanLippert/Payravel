@@ -14,6 +14,11 @@ const props = withDefaults(defineProps<{
 const initials = computed(() =>
   props.name.split(' ').filter(Boolean).slice(0, 2).map(w => w[0]).join('').toUpperCase()
 )
+
+const imgError = ref(false)
+watch(() => props.src, () => { imgError.value = false })
+
+const showImg = computed(() => !!props.src && !imgError.value)
 </script>
 
 <template>
@@ -22,11 +27,17 @@ const initials = computed(() =>
     :style="{
       width: `${size}px`,
       height: `${size}px`,
-      background: src ? 'transparent' : color,
+      background: showImg ? 'transparent' : color,
       fontSize: `${Math.round(size * 0.4)}px`,
     }"
   >
-    <img v-if="src" :src="src" :alt="name" class="w-full h-full object-cover" />
+    <img
+      v-if="showImg"
+      :src="src"
+      :alt="name"
+      class="w-full h-full object-cover"
+      @error="imgError = true"
+    />
     <template v-else>{{ initials }}</template>
   </span>
 </template>

@@ -1,5 +1,7 @@
 <!-- frontend/components/ui/UiStepper.vue -->
 <script setup lang="ts">
+import { cn } from '~/utils/cn'
+
 interface Step { title: string; desc?: string }
 
 withDefaults(defineProps<{
@@ -26,7 +28,7 @@ withDefaults(defineProps<{
           :style="{ background: i < current ? 'var(--red-border)' : 'var(--border-default)' }"
         />
       </div>
-      <div :class="['pt-[3px]', i < steps.length - 1 ? 'pb-[22px]' : '']">
+      <div :class="cn('pt-[3px]', i < steps.length - 1 && 'pb-[22px]')">
         <div
           class="text-sm font-sans"
           :style="{

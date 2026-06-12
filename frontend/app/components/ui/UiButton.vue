@@ -1,5 +1,8 @@
 <!-- frontend/components/ui/UiButton.vue -->
 <script setup lang="ts">
+import { cn } from '~/utils/cn'
+import { Loader2 } from '@lucide/vue'
+
 withDefaults(defineProps<{
   variant?: 'primary' | 'ghost' | 'danger'
   size?: 'sm' | 'md' | 'lg'
@@ -30,20 +33,18 @@ const sizeMap = {
     :type="type"
     :disabled="disabled || loading"
     @click="(e) => emit('click', e)"
-    :class="[
-      'inline-flex items-center justify-center gap-2 font-sans font-medium',
-      'rounded-sm border-[0.5px] whitespace-nowrap select-none',
-      'transition-colors duration-[120ms] ease-linear',
-      'disabled:opacity-40 disabled:cursor-not-allowed',
+    :class="cn(
+      'inline-flex items-center justify-center gap-2 font-sans font-medium rounded-sm border-[0.5px] whitespace-nowrap select-none transition-colors duration-[120ms] ease-linear disabled:opacity-40 disabled:cursor-not-allowed',
       sizeMap[size],
       fullWidth && 'w-full',
       variant === 'primary' && 'bg-accent text-white border-transparent hover:bg-accent-hover active:bg-accent-pressed',
       variant === 'ghost' && 'bg-transparent text-white border-[rgba(255,255,255,0.10)] hover:bg-white/[0.06] hover:border-[rgba(255,255,255,0.15)]',
       variant === 'danger' && 'bg-status-rejected text-white border-transparent hover:bg-[#d83a3a] active:bg-[#c23030]',
-    ]"
+    )"
   >
-    <slot name="icon-left" />
+    <Loader2 v-if="loading" :size="14" class="animate-spin" />
+    <slot v-if="!loading" name="icon-left" />
     <slot />
-    <slot name="icon-right" />
+    <slot v-if="!loading" name="icon-right" />
   </button>
 </template>

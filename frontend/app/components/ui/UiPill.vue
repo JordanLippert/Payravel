@@ -3,6 +3,7 @@
 const props = defineProps<{
   name?: string
   role?: string | null
+  avatarUrl?: string | null
 }>()
 
 const isElevated = computed(() => !!props.role)
@@ -18,6 +19,7 @@ const isElevated = computed(() => !!props.role)
   >
     <UiAvatar
       :name="name || ''"
+      :src="avatarUrl ?? undefined"
       :size="26"
       :color="isElevated ? 'rgba(0,0,0,0.25)' : 'var(--red-500)'"
     />
