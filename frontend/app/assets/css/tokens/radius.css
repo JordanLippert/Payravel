@@ -1,0 +1,8 @@
+:root {
+  --radius-sm: 6px; --radius-md: 8px; --radius-lg: 12px; --radius-full: 999px;
+  --border-hairline: 0.5px; --border-thin: 1px;
+  --hairline: var(--border-hairline) solid var(--border-subtle);
+  --hairline-default: var(--border-hairline) solid var(--border-default);
+  --shadow-none: none;
+  --shadow-menu: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
