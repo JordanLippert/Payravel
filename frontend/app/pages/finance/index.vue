@@ -27,26 +27,32 @@ const nav = computed(() => [
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
         <UiMetricCard
           label="Aguardando revisão"
-          :value="String(metrics.pending)"
+          :value="metrics.pending"
           sub="na sua fila"
           :accent="true"
+          :loading="loading"
         />
         <UiMetricCard
           label="Total em EUR"
-          :value="formatEur(metrics.total)"
+          :value="metrics.total"
+          prefix="€ "
+          :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
           sub="valor pendente"
+          :loading="loading"
         />
         <UiMetricCard
           label="Aprovados hoje"
-          :value="String(metrics.approved)"
+          :value="metrics.approved"
           tone="approved"
           sub="processados"
+          :loading="loading"
         />
         <UiMetricCard
           label="Expiram em 24h"
-          :value="String(metrics.expiringIn24h)"
+          :value="metrics.expiringIn24h"
           tone="pending"
           sub="ação necessária"
+          :loading="loading"
         />
       </div>
 

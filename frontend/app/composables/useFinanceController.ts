@@ -12,6 +12,8 @@ export function useFinanceController() {
   const loading = ref(false)
   const resolving = ref<Set<string>>(new Set())
   const fading = ref<Set<string>>(new Set())
+  const sessionApproved = ref(0)
+  const sessionRejected = ref(0)
 
   function isCritical(req: PaymentRequest) {
     if (!req.expires_at || req.status !== 'pending') return false
@@ -28,10 +30,10 @@ export function useFinanceController() {
   }
 
   const metrics = computed(() => ({
-    total: requests.value.filter(r => r.status === 'pending').reduce((s, r) => s + r.amount_eur, 0),
+    total: requests.value.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount_eur), 0),
     pending: requests.value.filter(r => r.status === 'pending').length,
-    approved: requests.value.filter(r => r.status === 'approved').length,
-    rejected: requests.value.filter(r => r.status === 'rejected').length,
+    approved: sessionApproved.value,
+    rejected: sessionRejected.value,
     expiringIn24h: requests.value.filter(r => isCritical(r)).length,
   }))
 
@@ -55,6 +57,8 @@ export function useFinanceController() {
         requests.value = requests.value.filter(r => r.id !== id)
         fading.value = new Set([...fading.value].filter(fid => fid !== id))
       }, 700)
+      if (status === 'approved') sessionApproved.value++
+      else sessionRejected.value++
       toast.success(status === 'approved' ? 'Requisição aprovada.' : 'Requisição rejeitada.')
     } catch {
       toast.error('Erro ao processar requisição.')

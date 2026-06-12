@@ -33,7 +33,7 @@ const nav = computed(() => [
 ])
 
 const all = ref<PaymentRequest[]>([])
-const loading = ref(false)
+const loading = ref(true)
 
 const metrics = computed(() => {
   const approved = all.value.filter(r => r.status === 'approved')
@@ -42,7 +42,7 @@ const metrics = computed(() => {
   const resolved = approved.length + rejected.length
 
   return {
-    totalEur:     approved.reduce((s, r) => s + r.amount_eur, 0),
+    totalEur:     approved.reduce((s, r) => s + Number(r.amount_eur), 0),
     approvedCount: approved.length,
     rejectedCount: rejected.length,
     pendingCount:  pending.length,
@@ -55,7 +55,7 @@ const byCurrency = computed(() => {
   for (const req of all.value) {
     if (!map.has(req.currency)) map.set(req.currency, { approved: 0, rejected: 0, eurApproved: 0 })
     const e = map.get(req.currency)!
-    if (req.status === 'approved') { e.approved++; e.eurApproved += req.amount_eur }
+    if (req.status === 'approved') { e.approved++; e.eurApproved += Number(req.amount_eur) }
     else if (req.status === 'rejected') e.rejected++
   }
   return [...map.entries()]
@@ -69,7 +69,7 @@ const byEmployee = computed(() => {
     const name = req.user?.name ?? 'Desconhecido'
     if (!map.has(name)) map.set(name, { approved: 0, rejected: 0, eurApproved: 0 })
     const e = map.get(name)!
-    if (req.status === 'approved') { e.approved++; e.eurApproved += req.amount_eur }
+    if (req.status === 'approved') { e.approved++; e.eurApproved += Number(req.amount_eur) }
     else e.rejected++
   }
   return [...map.entries()]
@@ -188,68 +188,105 @@ onMounted(fetch)
       <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Relatórios</h1>
       <p class="text-sm mb-6" style="color: var(--text-tertiary);">Resumo consolidado das requisições de pagamento.</p>
 
-      <div v-if="loading" class="py-10 text-center text-sm" style="color: var(--text-muted);">Carregando...</div>
-
-      <template v-else>
-        <!-- KPI cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
+      <!-- KPI cards -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
+        <template v-if="loading">
+          <UiCard v-for="n in 4" :key="n">
+            <UiSkeleton width="55%" height="11px" style="margin-bottom: 10px;" />
+            <UiSkeleton width="75px" height="22px" style="margin-bottom: 8px;" />
+            <UiSkeleton width="45%" height="10px" />
+          </UiCard>
+        </template>
+        <template v-else>
           <UiMetricCard
             label="Total aprovado"
-            :value="formatEur(metrics.totalEur)"
+            :value="metrics.totalEur"
+            prefix="€ "
+            :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
             sub="valor liberado em EUR"
             :accent="true"
           />
           <UiMetricCard
             label="Aprovadas"
-            :value="String(metrics.approvedCount)"
+            :value="metrics.approvedCount"
             tone="approved"
             sub="requisições"
           />
           <UiMetricCard
             label="Rejeitadas"
-            :value="String(metrics.rejectedCount)"
+            :value="metrics.rejectedCount"
             tone="rejected"
             sub="requisições"
           />
           <UiMetricCard
             label="Taxa de aprovação"
-            :value="`${metrics.approvalRate}%`"
+            :value="metrics.approvalRate / 100"
+            :format-options="{ style: 'percent', maximumFractionDigits: 0 }"
             sub="aprovadas vs revisadas"
           />
-        </div>
+        </template>
+      </div>
 
-        <!-- Charts row -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 mb-5" style="gap: 18px;">
-          <!-- Doughnut: distribuição por status -->
-          <UiCard :overflow="false">
+      <!-- Charts row -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 mb-5" style="gap: 18px;">
+        <UiCard :overflow="false">
+          <template v-if="loading">
+            <UiSkeleton width="60%" height="13px" style="margin-bottom: 16px;" />
+            <div style="height: 260px; display: flex; align-items: center; justify-content: center;">
+              <UiSkeleton width="180px" height="180px" rounded="50%" />
+            </div>
+          </template>
+          <template v-else>
             <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">Distribuição por status</p>
             <div style="height: 260px; padding: 8px 8px 0;">
               <ClientOnly>
                 <Doughnut :data="donutData" :options="donutOptions" />
               </ClientOnly>
             </div>
-          </UiCard>
+          </template>
+        </UiCard>
 
-          <!-- Bar: EUR por moeda -->
-          <UiCard style="grid-column: span 2;">
+        <UiCard style="grid-column: span 2;">
+          <template v-if="loading">
+            <UiSkeleton width="55%" height="13px" style="margin-bottom: 16px;" />
+            <div style="height: 260px; display: flex; align-items: flex-end; gap: 12px; padding-bottom: 4px;">
+              <UiSkeleton v-for="h in ['60%','85%','45%','70%','55%']" :key="h" width="14%" :height="h" />
+            </div>
+          </template>
+          <template v-else>
             <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">Valor aprovado por moeda (EUR)</p>
             <div style="height: 260px;">
               <ClientOnly>
                 <Bar :data="barData" :options="barOptions" />
               </ClientOnly>
             </div>
-          </UiCard>
-        </div>
+          </template>
+        </UiCard>
+      </div>
 
-        <!-- Tables row -->
-        <div class="grid grid-cols-1 lg:grid-cols-2" style="gap: 18px;">
-          <!-- By currency -->
-          <UiCard :padded="false">
-            <div
-              class="text-sm font-medium"
-              style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-            >Detalhamento por moeda</div>
+      <!-- Tables row -->
+      <div class="grid grid-cols-1 lg:grid-cols-2" style="gap: 18px;">
+        <!-- By currency -->
+        <UiCard :padded="false">
+          <div
+            class="text-sm font-medium"
+            style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
+          >Detalhamento por moeda</div>
 
+          <template v-if="loading">
+            <table class="w-full" style="border-collapse: collapse;">
+              <tbody>
+                <tr v-for="(w, i) in ['55%','65%','50%','60%','52%']" :key="i"
+                  :style="{ borderBottom: i < 4 ? '0.5px solid var(--border-subtle)' : 'none' }">
+                  <td style="padding: 12px 16px;"><UiSkeleton :width="w" /></td>
+                  <td style="padding: 12px 16px;"><UiSkeleton width="28px" /></td>
+                  <td style="padding: 12px 16px;"><UiSkeleton width="28px" /></td>
+                  <td style="padding: 12px 16px;"><div class="flex justify-end"><UiSkeleton width="72px" /></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template v-else>
             <div v-if="byCurrency.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">Sem dados.</div>
 
             <table v-else class="w-full" style="border-collapse: collapse;">
@@ -278,15 +315,30 @@ onMounted(fetch)
                 </tr>
               </tbody>
             </table>
-          </UiCard>
+          </template>
+        </UiCard>
 
-          <!-- By employee -->
-          <UiCard :padded="false">
-            <div
-              class="text-sm font-medium"
-              style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-            >Detalhamento por funcionário</div>
+        <!-- By employee -->
+        <UiCard :padded="false">
+          <div
+            class="text-sm font-medium"
+            style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
+          >Detalhamento por funcionário</div>
 
+          <template v-if="loading">
+            <table class="w-full" style="border-collapse: collapse;">
+              <tbody>
+                <tr v-for="(w, i) in ['60%','70%','55%','65%','50%']" :key="i"
+                  :style="{ borderBottom: i < 4 ? '0.5px solid var(--border-subtle)' : 'none' }">
+                  <td style="padding: 12px 16px;"><UiSkeleton :width="w" /></td>
+                  <td style="padding: 12px 16px;"><UiSkeleton width="28px" /></td>
+                  <td style="padding: 12px 16px;"><UiSkeleton width="28px" /></td>
+                  <td style="padding: 12px 16px;"><div class="flex justify-end"><UiSkeleton width="72px" /></div></td>
+                </tr>
+              </tbody>
+            </table>
+          </template>
+          <template v-else>
             <div v-if="byEmployee.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">Sem dados.</div>
 
             <table v-else class="w-full" style="border-collapse: collapse;">
@@ -310,9 +362,9 @@ onMounted(fetch)
                 </tr>
               </tbody>
             </table>
-          </UiCard>
-        </div>
-      </template>
+          </template>
+        </UiCard>
+      </div>
     </main>
   </div>
 </template>

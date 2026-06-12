@@ -123,7 +123,33 @@ onMounted(fetch)
       </div>
 
       <UiCard :padded="false">
-        <div v-if="loading" class="py-10 text-center text-sm" style="color: var(--text-muted);">Carregando...</div>
+        <div v-if="loading" class="overflow-x-auto">
+          <table class="w-full" style="border-collapse: collapse;">
+            <thead>
+              <tr style="border-bottom: 0.5px solid var(--border-subtle);">
+                <th v-for="h in ['Funcionário / Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Status', 'Revisado em']" :key="h"
+                  class="text-left font-medium"
+                  style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
+                >{{ h }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(w, i) in ['55%','65%','50%','60%','52%']" :key="i"
+                :style="{ borderBottom: i < 4 ? '0.5px solid var(--border-subtle)' : 'none' }"
+              >
+                <td style="padding: 14px 16px;">
+                  <UiSkeleton :width="w" />
+                  <UiSkeleton width="45%" height="11px" style="margin-top: 6px;" />
+                </td>
+                <td style="padding: 14px 16px;"><div class="flex justify-end"><UiSkeleton width="72px" /></div></td>
+                <td style="padding: 14px 16px;"><UiSkeleton width="48px" /></td>
+                <td style="padding: 14px 16px;"><div class="flex justify-end"><UiSkeleton width="80px" /></div></td>
+                <td style="padding: 14px 16px;"><UiSkeleton width="65px" height="22px" rounded="999px" /></td>
+                <td style="padding: 14px 16px;"><UiSkeleton width="90px" /></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
 
         <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
           <div v-if="!loading" :key="statusFilter">
@@ -147,7 +173,13 @@ onMounted(fetch)
                   <tr
                     v-for="(req, i) in requests"
                     :key="req.id"
-                    :style="{ borderBottom: i < requests.length - 1 ? '0.5px solid var(--border-subtle)' : 'none' }"
+                    @click="navigateTo(`/requests/${req.id}`)"
+                    :style="{
+                      borderBottom: i < requests.length - 1 ? '0.5px solid var(--border-subtle)' : 'none',
+                      cursor: 'pointer',
+                    }"
+                    @mouseenter="($event.currentTarget as HTMLElement).style.background = 'var(--bg-elevated)'"
+                    @mouseleave="($event.currentTarget as HTMLElement).style.background = 'transparent'"
                   >
                     <td style="padding: 14px 16px;">
                       <div style="font-size: 14px; color: var(--text-primary); font-weight: 500;">{{ req.user?.name ?? '—' }}</div>
