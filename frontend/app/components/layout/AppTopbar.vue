@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { onClickOutside } from '@vueuse/core'
-import { LogOut } from '@lucide/vue'
+import { LogOut, User } from '@lucide/vue'
 import { useAuthStore } from '~/stores/auth'
 
 interface NavItem { label: string; active?: boolean; to?: string }
@@ -29,8 +29,10 @@ const router = useRouter()
 
 async function logout() {
   menuOpen.value = false
-  await auth.logout()
-  await router.push('/login')
+  try { await auth.logout() } catch { /* token already invalid */ }
+  auth.token = null
+  auth.user = null
+  router.push('/login')
 }
 </script>
 
@@ -62,15 +64,29 @@ async function logout() {
         class="cursor-pointer bg-transparent border-none p-0"
         @click="menuOpen = !menuOpen"
       >
-        <UiPill :name="user.name" :role="user.role ?? null" />
+        <UiPill :name="user.name" :role="user.role ?? null" :avatar-url="auth.user?.avatar_url" />
       </button>
 
       <Transition name="dropdown">
         <div
           v-if="menuOpen"
-          class="absolute right-0 top-[calc(100%+8px)] z-50 rounded-md border-[0.5px] py-1 min-w-[140px]"
+          class="absolute right-0 top-[calc(100%+8px)] z-50 rounded-md border-[0.5px] py-1 min-w-[160px]"
           :style="{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-menu)' }"
         >
+          <NuxtLink
+            to="/profile"
+            class="w-full flex items-center justify-between px-3 py-2 text-sm font-sans no-underline transition-colors duration-[120ms]"
+            style="color: var(--text-primary); display: flex;"
+            @mouseenter="($event.currentTarget as HTMLElement).style.background = 'var(--bg-row-hover)'"
+            @mouseleave="($event.currentTarget as HTMLElement).style.background = 'transparent'"
+            @click="menuOpen = false"
+          >
+            Perfil
+            <User :size="14" style="color: var(--text-muted);" />
+          </NuxtLink>
+
+          <div style="height: 0.5px; background: var(--border-subtle); margin: 3px 0;" />
+
           <button
             type="button"
             class="w-full flex items-center justify-between px-3 py-2 text-sm transition-colors duration-[120ms] font-sans"
