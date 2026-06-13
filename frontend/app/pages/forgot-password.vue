@@ -2,12 +2,14 @@
 import { useForgotPasswordController } from '~/composables/useForgotPasswordController'
 
 definePageMeta({ layout: 'auth' })
+const isMobile = useIsMobile()
 
 const { loading, sent, email, errors, submit } = useForgotPasswordController()
 </script>
 
 <template>
-  <div class="min-h-screen flex bg-[#0f0f0f]">
+  <ForgotPasswordMobile v-if="isMobile" />
+  <div v-else class="min-h-screen flex bg-[#0f0f0f]">
     <!-- Left panel -->
     <div class="hidden lg:flex flex-col justify-between w-[42%] bg-[#CC0000] py-14 px-12">
       <AppLogo :animated="false" color="white" knockout="#CC0000" wordmark-color="white" :size="54" />

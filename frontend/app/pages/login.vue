@@ -2,11 +2,15 @@
 import { useLoginController } from '~/composables/useLoginController'
 
 definePageMeta({ layout: 'auth' })
+const isMobile = useIsMobile()
 
 const { mode, loading, name, email, password, errors, toggleMode, submit } = useLoginController()
 </script>
 
 <template>
+  <LoginMobile v-if="isMobile" />
+
+  <div v-else>
   <div class="min-h-screen flex bg-[#0f0f0f]">
     <!-- Left panel -->
     <div class="hidden lg:flex flex-col justify-between w-[42%] bg-[#CC0000] py-14 px-12">
@@ -98,5 +102,6 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
         </div>
       </div>
     </div>
+  </div>
   </div>
 </template>

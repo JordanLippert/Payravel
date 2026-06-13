@@ -20,6 +20,7 @@ import { CURRENCIES } from '~/config/constants'
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
 definePageMeta({ middleware: 'auth' })
+const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const toast = useToast()
@@ -181,7 +182,9 @@ onMounted(fetch)
 </script>
 
 <template>
-  <div>
+  <FinanceReportsMobile v-if="isMobile" />
+
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">

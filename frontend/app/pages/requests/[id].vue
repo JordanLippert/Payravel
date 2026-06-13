@@ -3,6 +3,7 @@ import { useRequestDetailController } from '~/composables/useRequestDetailContro
 import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({ middleware: 'auth' })
+const isMobile = useIsMobile()
 
 const { request, loading, timeline, formatEur, formatDate } = useRequestDetailController()
 const auth = useAuthStore()
@@ -16,6 +17,8 @@ const nav = computed(() => [
 
 <template>
   <div>
+    <DetailMobile v-if="isMobile" />
+    <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '' }" />
 
     <main class="px-8 py-8" style="max-width: 1000px; margin: 0 auto;">
@@ -162,5 +165,6 @@ const nav = computed(() => [
         </UiCard>
       </div>
     </main>
+    </div>
   </div>
 </template>

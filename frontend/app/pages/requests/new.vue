@@ -4,6 +4,8 @@ import { useAuthStore } from '~/stores/auth'
 
 definePageMeta({ middleware: 'auth' })
 
+const isMobile = useIsMobile()
+
 const {
   step, loading, rateLoading, advancing, fetchFailed,
   description, amountDisplay, onAmountKey, currency, rate, rateSource, rateValidFor,
@@ -32,7 +34,8 @@ const fmtEUR = (n: number) =>
 </script>
 
 <template>
-  <div>
+  <NewRequestMobile v-if="isMobile" />
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '' }" />
 
     <main class="px-8 py-8" style="max-width: 1000px; margin: 0 auto;">

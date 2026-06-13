@@ -4,6 +4,7 @@ import { useAuthStore } from '~/stores/auth'
 import { Clock } from '@lucide/vue'
 
 definePageMeta({ middleware: 'auth' })
+const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const { requests, loading, resolving, fading, metrics, resolve, formatEur, formatExpiry, isCritical, CURRENCY_FLAG } = useFinanceController()
@@ -16,7 +17,8 @@ const nav = computed(() => [
 </script>
 
 <template>
-  <div>
+  <FinanceMobile v-if="isMobile" />
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">

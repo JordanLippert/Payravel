@@ -7,6 +7,8 @@ import { CURRENCIES } from '~/config/constants'
 
 definePageMeta({ middleware: 'auth' })
 
+const isMobile = useIsMobile()
+
 const auth = useAuthStore()
 const toast = useToast()
 
@@ -80,7 +82,8 @@ onMounted(fetch)
 </script>
 
 <template>
-  <div>
+  <FinanceHistoryMobile v-if="isMobile" />
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">

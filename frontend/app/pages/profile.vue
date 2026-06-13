@@ -4,6 +4,7 @@ import { useAuthStore } from '~/stores/auth'
 import { Camera } from '@lucide/vue'
 
 definePageMeta({ middleware: 'auth' })
+const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const {
@@ -35,7 +36,8 @@ const roleLabel = computed(() =>
 </script>
 
 <template>
-  <div>
+  <ProfileMobile v-if="isMobile" />
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 680px; margin: 0 auto;">

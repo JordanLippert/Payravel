@@ -4,6 +4,8 @@ import { CURRENCIES } from '~/config/constants'
 
 definePageMeta({ middleware: 'auth' })
 
+const isMobile = useIsMobile()
+
 const {
   auth, requests, loading,
   totalMetric, totalLoading,
@@ -23,7 +25,8 @@ const nav = computed(() => [
 </script>
 
 <template>
-  <div>
+  <HomeMobile v-if="isMobile" />
+  <div v-else>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
