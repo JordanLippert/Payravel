@@ -18,12 +18,12 @@ const labels: Record<Status, string> = {
   neutral: '',
 }
 
-const styles: Record<Status, { color: string; bg: string; border: string }> = {
-  pending:  { color: 'var(--status-pending-fg)',  bg: 'var(--status-pending-bg)',  border: 'var(--status-pending-border)' },
-  approved: { color: 'var(--status-approved-fg)', bg: 'var(--status-approved-bg)', border: 'var(--status-approved-border)' },
-  rejected: { color: 'var(--status-rejected-fg)', bg: 'var(--status-rejected-bg)', border: 'var(--status-rejected-border)' },
-  expired:  { color: 'var(--status-expired-fg)',  bg: 'var(--status-expired-bg)',  border: 'var(--status-expired-border)' },
-  neutral:  { color: 'var(--text-secondary)',      bg: 'var(--bg-input)',            border: 'var(--border-default)' },
+const styles: Record<Status, { color: string; bg: string; border: string; dotShadow: string | null }> = {
+  pending:  { color: 'var(--status-pending-fg)',  bg: 'var(--status-pending-bg)',  border: 'var(--status-pending-border)',  dotShadow: '0 0 5px 1px rgba(245,165,36,0.55)' },
+  approved: { color: 'var(--status-approved-fg)', bg: 'var(--status-approved-bg)', border: 'var(--status-approved-border)', dotShadow: '0 0 5px 1px rgba(43,189,110,0.55)' },
+  rejected: { color: 'var(--status-rejected-fg)', bg: 'var(--status-rejected-bg)', border: 'var(--status-rejected-border)', dotShadow: '0 0 5px 1px rgba(240,68,68,0.55)' },
+  expired:  { color: 'var(--status-expired-fg)',  bg: 'var(--status-expired-bg)',  border: 'var(--status-expired-border)',  dotShadow: null },
+  neutral:  { color: 'var(--text-secondary)',      bg: 'var(--bg-input)',            border: 'var(--border-default)',          dotShadow: null },
 }
 </script>
 
@@ -39,7 +39,7 @@ const styles: Record<Status, { color: string; bg: string; border: string }> = {
     <span
       v-if="dot"
       class="pv-badge-dot w-1.5 h-1.5 rounded-full flex-none"
-      :style="{ background: styles[status].color }"
+      :style="{ background: styles[status].color, boxShadow: styles[status].dotShadow ?? undefined }"
     />
     <slot>{{ labels[status] }}</slot>
   </span>

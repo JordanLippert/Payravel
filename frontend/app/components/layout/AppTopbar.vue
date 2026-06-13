@@ -58,7 +58,10 @@ async function logout() {
       >{{ item.label }}</NuxtLink>
     </nav>
 
-    <div class="ml-auto relative" ref="menuRef">
+    <div class="ml-auto flex items-center gap-2">
+      <UiNotificationBell />
+
+      <div class="relative" ref="menuRef">
       <button
         type="button"
         class="cursor-pointer bg-transparent border-none p-0"
@@ -100,6 +103,7 @@ async function logout() {
           </button>
         </div>
       </Transition>
+      </div>
     </div>
   </header>
 </template>
