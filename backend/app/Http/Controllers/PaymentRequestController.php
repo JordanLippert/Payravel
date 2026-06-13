@@ -26,11 +26,15 @@ class PaymentRequestController extends Controller
     public function index(Request $request): PaymentRequestCollection
     {
         $query = $request->user()->isFinance()
-            ? PaymentRequest::query()
-            : PaymentRequest::where('user_id', $request->user()->id);
+            ? PaymentRequest::with('user')
+            : PaymentRequest::with('user')->where('user_id', $request->user()->id);
 
         if ($status = $request->query('status')) {
-            $query->where('status', $status);
+            if ($status === 'resolved') {
+                $query->whereIn('status', ['approved', 'rejected', 'expired']);
+            } else {
+                $query->where('status', $status);
+            }
         }
 
         return new PaymentRequestCollection($query->latest()->paginate(15));
@@ -49,6 +53,21 @@ class PaymentRequestController extends Controller
 
             $pr = $this->service->create($request->user(), $dto);
 
+            $requestUser = $request->user();
+            $localFormatted = number_format((float) $pr->amount_local, 2, ',', '.');
+            $notifBody = "Nova requisição de {$requestUser->name} — {$pr->currency} {$localFormatted}";
+            \App\Models\User::where('role', 'finance')->each(function ($financeUser) use ($pr, $notifBody) {
+                \App\Models\Notification::create([
+                    'user_id' => $financeUser->id,
+                    'type'    => 'new_request_pending',
+                    'data'    => [
+                        'title'      => 'Nova requisição pendente',
+                        'body'       => $notifBody,
+                        'request_id' => $pr->id,
+                    ],
+                ]);
+            });
+
             return response()->json(['data' => new PaymentRequestResource($pr)], 201);
         } catch (ExchangeRateUnavailableException $e) {
             return response()->json(['message' => $e->getMessage()], 503);
@@ -62,8 +81,8 @@ class PaymentRequestController extends Controller
     public function show(Request $request, string $id): JsonResponse
     {
         $query = $request->user()->isFinance()
-            ? PaymentRequest::query()
-            : PaymentRequest::where('user_id', $request->user()->id);
+            ? PaymentRequest::with('user')
+            : PaymentRequest::with('user')->where('user_id', $request->user()->id);
 
         $pr = $query->find($id);
 
@@ -85,6 +104,18 @@ class PaymentRequestController extends Controller
                 'approved' => $this->service->approve($id, $request->user()),
                 'rejected' => $this->service->reject($id, $request->user()),
             };
+
+            $statusLabel  = $request->status === 'approved' ? 'aprovada' : 'rejeitada';
+            $eurFormatted = number_format((float) $pr->amount_eur, 2, ',', '.');
+            \App\Models\Notification::create([
+                'user_id' => $pr->user_id,
+                'type'    => "request_{$request->status}",
+                'data'    => [
+                    'title'      => "Requisição {$statusLabel}",
+                    'body'       => "Sua requisição de € {$eurFormatted} foi {$statusLabel}.",
+                    'request_id' => $pr->id,
+                ],
+            ]);
 
             return response()->json(['data' => new PaymentRequestResource($pr)]);
         } catch (\InvalidArgumentException $e) {
