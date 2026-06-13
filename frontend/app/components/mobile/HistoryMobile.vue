@@ -1,6 +1,6 @@
 <!-- app/components/mobile/HistoryMobile.vue -->
 <script setup lang="ts">
-import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { useToast } from 'vue-toastification'
 
 const router = useRouter()
@@ -16,23 +16,37 @@ const filters: { value: FilterValue; label: string }[] = [
   { value: 'expired',  label: 'Expirado' },
 ]
 
-const all = ref<PaymentRequest[]>([])
+const requests = ref<PaymentRequest[]>([])
 const loading = ref(false)
 const activeFilter = ref<FilterValue>('all')
-
-const filtered = computed(() =>
-  activeFilter.value === 'all' ? all.value : all.value.filter(r => r.status === activeFilter.value)
-)
+const page = ref(1)
+const meta = ref<PaginationMeta>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
 
 async function fetchRequests() {
   loading.value = true
   try {
-    all.value = await paymentRequestsService.list()
+    const result = await paymentRequestsService.list({
+      page: page.value,
+      status: activeFilter.value === 'all' ? undefined : activeFilter.value,
+    })
+    requests.value = result.data
+    meta.value = result.meta
   } catch {
     toast.error('Erro ao carregar histórico.')
   } finally {
     loading.value = false
   }
+}
+
+function setFilter(val: FilterValue) {
+  activeFilter.value = val
+  page.value = 1
+  fetchRequests()
+}
+
+function setPage(p: number) {
+  page.value = p
+  fetchRequests()
 }
 
 onMounted(fetchRequests)
@@ -61,7 +75,7 @@ onMounted(fetchRequests)
           color: activeFilter === f.value ? '#000' : 'var(--text-tertiary)',
           border: `0.5px solid ${activeFilter === f.value ? 'transparent' : 'var(--border-default)'}`,
         }"
-        @click="activeFilter = f.value"
+        @click="setFilter(f.value)"
       >{{ f.label }}</button>
     </div>
 
@@ -79,16 +93,23 @@ onMounted(fetchRequests)
         </div>
       </template>
 
-      <div v-else-if="filtered.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0;">
+      <div v-else-if="requests.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0;">
         Nenhuma requisição encontrada.
       </div>
 
       <MobileRequestCard
         v-else
-        v-for="req in filtered"
+        v-for="req in requests"
         :key="req.id"
         :request="req"
         @click="router.push(`/requests/${req.id}`)"
+      />
+
+      <UiPagination
+        :current-page="meta.current_page"
+        :last-page="meta.last_page"
+        :loading="loading"
+        @change="setPage"
       />
     </div>
 

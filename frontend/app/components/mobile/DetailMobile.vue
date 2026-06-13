@@ -17,7 +17,9 @@ const timelineItems = computed(() => timeline.value.map(t => ({
     ? 'var(--status-rejected-fg)'
     : t.expired
     ? 'var(--text-muted)'
-    : t.done || t.current
+    : t.current
+    ? 'var(--status-pending-fg)'
+    : t.done
     ? 'var(--status-approved-fg)'
     : 'transparent',
   borderColor: t.rejected
@@ -29,6 +31,15 @@ const timelineItems = computed(() => timeline.value.map(t => ({
     : t.done
     ? 'var(--status-approved-fg)'
     : 'var(--border-default)',
+  dotShadow: t.rejected
+    ? '0 0 7px 2px rgba(240,68,68,0.4)'
+    : t.expired
+    ? '0 0 7px 2px rgba(113,113,122,0.4)'
+    : t.done
+    ? '0 0 7px 2px rgba(43,189,110,0.4)'
+    : t.current
+    ? '0 0 7px 2px rgba(245,158,11,0.4)'
+    : 'none',
 })))
 </script>
 
@@ -113,6 +124,7 @@ const timelineItems = computed(() => timeline.value.map(t => ({
                 :style="{
                   background: item.dotColor,
                   border: `1.5px solid ${item.borderColor}`,
+                  boxShadow: item.dotShadow,
                 }"
               />
               <span v-if="i < timelineItems.length - 1" style="width: 1.5px; flex: 1; min-height: 24px; background: var(--border-default);" />

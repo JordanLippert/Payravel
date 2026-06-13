@@ -1,12 +1,13 @@
 <!-- app/components/mobile/FinanceMobile.vue -->
 <script setup lang="ts">
+import NumberFlow from '@number-flow/vue'
 import { Clock, Check, X, Shield } from '@lucide/vue'
 import { useFinanceController } from '~/composables/useFinanceController'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
-const { requests, loading, resolving, fading, metrics, resolve, formatEur, formatExpiry, isCritical, CURRENCY_FLAG } = useFinanceController()
+const { requests, loading, page, meta, setPage, resolving, fading, metrics, resolve, formatEur, formatExpiry, isCritical, CURRENCY_FLAG } = useFinanceController()
 </script>
 
 <template>
@@ -18,31 +19,49 @@ const { requests, loading, resolving, fading, metrics, resolve, formatEur, forma
         <div style="font-size: 11px; color: var(--text-muted);">Painel</div>
         <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Aprovações</div>
       </div>
-      <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--red-500); border-radius: 999px; padding: 4px 11px 4px 4px;">
-        <span style="width: 24px; height: 24px; border-radius: 999px; background: rgba(0,0,0,.22); display: flex; align-items: center; justify-content: center;">
-          <Shield :size="13" style="color: #fff;" />
+      <div class="flex items-center gap-2">
+        <UiNotificationBell />
+        <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--red-500); border-radius: 999px; padding: 4px 11px 4px 4px;">
+          <span style="width: 24px; height: 24px; border-radius: 999px; background: rgba(0,0,0,.22); display: flex; align-items: center; justify-content: center;">
+            <Shield :size="13" style="color: #fff;" />
+          </span>
+          <span style="display: flex; flex-direction: column; line-height: 1.2;">
+            <span style="font-size: 12px; font-weight: 500; color: #fff;">{{ auth.user?.name?.split(' ')[0] }}</span>
+            <span style="font-size: 10px; color: rgba(255,255,255,.8);">Finance</span>
+          </span>
         </span>
-        <span style="display: flex; flex-direction: column; line-height: 1.2;">
-          <span style="font-size: 12px; font-weight: 500; color: #fff;">{{ auth.user?.name?.split(' ')[0] }}</span>
-          <span style="font-size: 10px; color: rgba(255,255,255,.8);">Finance</span>
-        </span>
-      </span>
+      </div>
     </div>
 
     <!-- Metrics 2x2 -->
     <div class="grid grid-cols-2" style="gap: 9px;">
       <div
-        v-for="({ label, value, tone }) in [
-          { label: 'Aguardando revisão', value: metrics.pending,        tone: 'var(--status-pending-fg)' },
-          { label: 'Total em EUR',       value: `€ ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 0 }).format(metrics.total)}`, tone: 'var(--text-primary)' },
-          { label: 'Aprovados hoje',     value: metrics.approved,       tone: 'var(--status-approved-fg)' },
-          { label: 'Expiram em 24h',     value: metrics.expiringIn24h,  tone: 'var(--status-rejected-fg)' },
+        v-for="({ label, numericValue, prefix, formatOptions, tone }) in [
+          { label: 'Aguardando revisão', numericValue: metrics.pending,       prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-pending-fg)' },
+          { label: 'Total em EUR',       numericValue: metrics.total,         prefix: '€ ', formatOptions: { minimumFractionDigits: 0 },  tone: 'var(--text-primary)' },
+          { label: 'Aprovados hoje',     numericValue: metrics.approved,      prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-approved-fg)' },
+          { label: 'Expiram em 24h',     numericValue: metrics.expiringIn24h, prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-rejected-fg)' },
         ]"
         :key="label"
         style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 13px; padding: 13px 14px;"
       >
-        <div v-if="loading"><UiSkeleton width="60%" height="22px" rounded="4px" /></div>
-        <div v-else style="font-family: var(--font-mono); font-size: 20px; font-weight: 500; line-height: 1;" :style="{ color: tone }">{{ value }}</div>
+        <ClientOnly>
+          <NumberFlow
+            :value="loading ? 0 : (numericValue ?? 0)"
+            :prefix="prefix"
+            :format="formatOptions"
+            locales="pt-BR"
+            class="font-mono font-medium tabular-nums"
+            :class="{ 'metric-pulse': loading }"
+            style="font-size: 20px; line-height: 1;"
+            :style="{ color: tone }"
+          />
+          <template #fallback>
+            <span class="font-mono font-medium tabular-nums" style="font-size: 20px; line-height: 1;" :style="{ color: tone }">
+              {{ prefix ?? '' }}0
+            </span>
+          </template>
+        </ClientOnly>
         <div style="font-size: 10.5px; color: var(--text-muted); margin-top: 6px;">{{ label }}</div>
       </div>
     </div>
@@ -106,8 +125,31 @@ const { requests, loading, resolving, fading, metrics, resolve, formatEur, forma
         <!-- Amount + actions -->
         <div class="flex items-end justify-between">
           <div>
-            <div style="font-size: 11px; color: var(--text-muted);">{{ req.currency }} {{ new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(req.amount_local) }}</div>
-            <div style="font-family: var(--font-mono); font-size: 18px; font-weight: 500; color: var(--text-primary); margin-top: 2px; font-variant-numeric: tabular-nums;">{{ formatEur(req.amount_eur) }}</div>
+            <div style="font-size: 11px; color: var(--text-muted); display: flex; align-items: baseline; gap: 3px;">
+              <span>{{ req.currency }}</span>
+              <ClientOnly>
+                <NumberFlow
+                  :value="req.amount_local"
+                  :format="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+                  locales="pt-BR"
+                  style="font-size: 11px; color: var(--text-muted);"
+                />
+                <template #fallback><span>0,00</span></template>
+              </ClientOnly>
+            </div>
+            <ClientOnly>
+              <NumberFlow
+                :value="req.amount_eur"
+                prefix="€ "
+                :format="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+                locales="pt-BR"
+                class="font-mono font-medium tabular-nums"
+                style="font-size: 18px; color: var(--text-primary); margin-top: 2px;"
+              />
+              <template #fallback>
+                <span class="font-mono font-medium tabular-nums" style="font-size: 18px; color: var(--text-primary); margin-top: 2px;">€ 0,00</span>
+              </template>
+            </ClientOnly>
           </div>
 
           <div v-if="req.status === 'pending'" class="flex" style="gap: 8px;">
@@ -134,7 +176,25 @@ const { requests, loading, resolving, fading, metrics, resolve, formatEur, forma
         </div>
 
       </div>
+
+      <UiPagination
+        :current-page="meta.current_page"
+        :last-page="meta.last_page"
+        :loading="loading"
+        @change="setPage"
+      />
     </div>
 
   </div>
 </template>
+
+<style scoped>
+.metric-pulse {
+  animation: metric-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes metric-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 0.2; }
+}
+</style>

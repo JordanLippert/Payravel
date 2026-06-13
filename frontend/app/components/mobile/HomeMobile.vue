@@ -1,6 +1,6 @@
 <!-- app/components/mobile/HomeMobile.vue -->
 <script setup lang="ts">
-import { Bell } from '@lucide/vue'
+import NumberFlow from '@number-flow/vue'
 import { useDashboardController } from '~/composables/useDashboardController'
 import { CURRENCIES } from '~/config/constants'
 import { useAuthStore } from '~/stores/auth'
@@ -9,15 +9,16 @@ const auth = useAuthStore()
 const router = useRouter()
 const {
   requests, loading,
+  page, meta, setPage,
+  statusFilter, setFilter,
   totalMetric, totalLoading,
-  pendingMetric, approvedMetric, rejectedMetric,
+  pendingMetric, pendingLoading, approvedMetric, approvedLoading, rejectedMetric, rejectedLoading,
   formatEur, formatDate,
 } = useDashboardController()
 
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 type FilterValue = 'all' | 'pending' | 'approved' | 'rejected'
-const filter = ref<FilterValue>('all')
 
 const filters: { value: FilterValue; label: string }[] = [
   { value: 'all',      label: 'Todas' },
@@ -26,9 +27,7 @@ const filters: { value: FilterValue; label: string }[] = [
   { value: 'rejected', label: 'Rejeitado' },
 ]
 
-const filtered = computed(() =>
-  filter.value === 'all' ? requests.value : requests.value.filter(r => r.status === filter.value)
-)
+const activeFilter = computed(() => (statusFilter.value as FilterValue | undefined) ?? 'all')
 
 const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
 </script>
@@ -43,12 +42,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
         <div style="font-size: 19px; font-weight: 500; color: var(--text-primary); margin-top: 2px;">{{ firstName }}</div>
       </div>
       <div class="flex items-center" style="gap: 10px;">
-        <button
-          type="button"
-          style="background: var(--bg-input); border: 0.5px solid var(--border-default); border-radius: 11px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative;"
-        >
-          <Bell :size="18" style="color: var(--text-secondary);" :stroke-width="1.8" />
-        </button>
+        <UiNotificationBell />
         <UiAvatar :name="auth.user?.name ?? ''" :src="auth.user?.avatar_url ?? undefined" :size="38" />
       </div>
     </div>
@@ -59,12 +53,20 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
       <div class="flex items-center justify-between">
         <span style="font-size: 12.5px; color: var(--text-tertiary);">Total enviado este mês</span>
       </div>
-      <div v-if="totalLoading" style="margin-top: 8px;">
-        <UiSkeleton width="140px" height="40px" rounded="6px" />
-      </div>
-      <div v-else style="font-family: var(--font-mono); font-size: 36px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-primary); font-variant-numeric: tabular-nums; margin-top: 8px; line-height: 1.1;">
-        {{ formatEur(totalMetric?.amount ?? 0) }}
-      </div>
+      <ClientOnly>
+        <NumberFlow
+          :value="totalLoading ? 0 : (totalMetric?.amount ?? 0)"
+          prefix="€ "
+          :format="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+          locales="pt-BR"
+          class="font-mono font-medium tabular-nums"
+          :class="{ 'metric-pulse': totalLoading }"
+          style="font-size: 36px; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 8px; line-height: 1.1; display: block;"
+        />
+        <template #fallback>
+          <span class="font-mono font-medium tabular-nums" style="font-size: 36px; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 8px; line-height: 1.1; display: block;">€ 0,00</span>
+        </template>
+      </ClientOnly>
       <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
         {{ totalMetric?.count ?? 0 }} {{ (totalMetric?.count ?? 0) === 1 ? 'requisição' : 'requisições' }}
       </div>
@@ -73,15 +75,27 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
     <!-- Quick stats 3 cols -->
     <div class="grid grid-cols-3" style="gap: 8px;">
       <div
-        v-for="({ label, value, tone }) in [
-          { label: 'Pendente',  value: pendingMetric?.count  ?? 0, tone: 'var(--status-pending-fg)'  },
-          { label: 'Aprovado',  value: approvedMetric?.count ?? 0, tone: 'var(--status-approved-fg)' },
-          { label: 'Rejeitado', value: rejectedMetric?.count ?? 0, tone: 'var(--status-rejected-fg)' },
+        v-for="({ label, numericValue, tone, isLoading }) in [
+          { label: 'Pendente',  numericValue: pendingMetric?.count  ?? 0, tone: 'var(--status-pending-fg)',  isLoading: pendingLoading  },
+          { label: 'Aprovado',  numericValue: approvedMetric?.count ?? 0, tone: 'var(--status-approved-fg)', isLoading: approvedLoading },
+          { label: 'Rejeitado', numericValue: rejectedMetric?.count ?? 0, tone: 'var(--status-rejected-fg)', isLoading: rejectedLoading },
         ]"
         :key="label"
         style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 13px; padding: 12px 13px;"
       >
-        <div style="font-family: var(--font-mono); font-size: 20px; font-weight: 500; line-height: 1;" :style="{ color: tone }">{{ value }}</div>
+        <ClientOnly>
+          <NumberFlow
+            :value="isLoading ? 0 : numericValue"
+            locales="pt-BR"
+            class="font-mono font-medium tabular-nums"
+            :class="{ 'metric-pulse': isLoading }"
+            style="font-size: 20px; line-height: 1;"
+            :style="{ color: tone }"
+          />
+          <template #fallback>
+            <span class="font-mono font-medium tabular-nums" style="font-size: 20px; line-height: 1;" :style="{ color: tone }">0</span>
+          </template>
+        </ClientOnly>
         <div style="font-size: 11px; color: var(--text-tertiary); margin-top: 6px;">{{ label }}</div>
       </div>
     </div>
@@ -96,11 +110,11 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
           type="button"
           style="flex: none; padding: 6px 13px; border-radius: 999px; cursor: pointer; font-family: var(--font-sans); font-size: 12.5px; font-weight: 500; white-space: nowrap; transition: background 120ms, color 120ms;"
           :style="{
-            background: filter === f.value ? 'var(--text-primary)' : 'var(--bg-input)',
-            color: filter === f.value ? '#000' : 'var(--text-tertiary)',
-            border: `0.5px solid ${filter === f.value ? 'transparent' : 'var(--border-default)'}`,
+            background: activeFilter === f.value ? 'var(--text-primary)' : 'var(--bg-input)',
+            color: activeFilter === f.value ? '#000' : 'var(--text-tertiary)',
+            border: `0.5px solid ${activeFilter === f.value ? 'transparent' : 'var(--border-default)'}`,
           }"
-          @click="filter = f.value"
+          @click="setFilter(f.value === 'all' ? undefined : f.value)"
         >{{ f.label }}</button>
       </div>
     </div>
@@ -118,7 +132,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
         </div>
       </template>
 
-      <template v-else-if="filtered.length === 0">
+      <template v-else-if="requests.length === 0">
         <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px 0;">
           Nenhuma requisição neste filtro.
         </div>
@@ -126,13 +140,31 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
 
       <template v-else>
         <MobileRequestCard
-          v-for="req in filtered"
+          v-for="req in requests"
           :key="req.id"
           :request="req"
           @click="router.push(`/requests/${req.id}`)"
         />
       </template>
+
+      <UiPagination
+        :current-page="meta.current_page"
+        :last-page="meta.last_page"
+        :loading="loading"
+        @change="setPage"
+      />
     </div>
 
   </div>
 </template>
+
+<style scoped>
+.metric-pulse {
+  animation: metric-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes metric-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 0.2; }
+}
+</style>

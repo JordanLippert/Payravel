@@ -26,6 +26,9 @@ function handleBack() {
   if (step.value === 1) router.back()
   else step.value--
 }
+
+const fmtEUR = (n: number) =>
+  new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n)
 </script>
 
 <template>
@@ -138,7 +141,7 @@ function handleBack() {
             <ChevronRight :size="16" style="color: var(--text-muted);" />
             <div class="text-right">
               <div style="font-size: 11.5px; color: var(--text-muted);">Equivale a</div>
-              <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 500; color: var(--red-500); margin-top: 2px;">€ {{ amountEur }}</div>
+              <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 500; color: var(--red-500); margin-top: 2px;">€ {{ amountEur ? fmtEUR(amountEur) : '0,00' }}</div>
             </div>
           </div>
         </div>
@@ -161,7 +164,7 @@ function handleBack() {
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; padding: 18px; text-align: center;">
           <div style="font-size: 12px; color: var(--text-muted);">Equivalente em EUR</div>
-          <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 6px; font-variant-numeric: tabular-nums;">€ {{ amountEur }}</div>
+          <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 6px; font-variant-numeric: tabular-nums;">€ {{ amountEur ? fmtEUR(amountEur) : '0,00' }}</div>
           <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px;">{{ currency }} {{ amountDisplay }} · taxa {{ rate }}</div>
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; overflow: hidden;">
@@ -180,26 +183,51 @@ function handleBack() {
     </div>
 
     <!-- Sticky footer actions -->
-    <div style="position: sticky; bottom: 0; background: var(--bg-base); border-top: 0.5px solid var(--border-subtle); padding: 12px 16px 28px; display: flex; gap: 9px;">
-      <UiButton variant="ghost" size="lg" @click="handleBack">
-        {{ step === 1 ? 'Cancelar' : 'Voltar' }}
-      </UiButton>
-      <UiButton
-        variant="primary"
-        size="lg"
-        class="flex-1"
-        :loading="advancing || loading"
-        :disabled="rateLoading"
-        @click="step === 3 ? submit() : advance()"
+    <div style="position: sticky; bottom: 0; background: var(--bg-base); border-top: 0.5px solid var(--border-subtle); padding: 12px 16px 28px; display: flex; flex-direction: column; gap: 9px;">
+      <div
+        v-if="advancing && rateLoading"
+        class="flex items-center gap-2 text-xs font-sans"
+        style="color: var(--text-muted);"
       >
-        <template v-if="step === 3">
-          Enviar <Send :size="15" class="ml-1.5" />
-        </template>
-        <template v-else>
-          Continuar <ChevronRight :size="16" class="ml-1" />
-        </template>
-      </UiButton>
+        <span class="pulse-dot" />
+        Buscando taxa de câmbio...
+      </div>
+      <div style="display: flex; gap: 9px;">
+        <UiButton variant="ghost" size="lg" @click="handleBack">
+          {{ step === 1 ? 'Cancelar' : 'Voltar' }}
+        </UiButton>
+        <UiButton
+          variant="primary"
+          size="lg"
+          class="flex-1"
+          :loading="advancing || loading"
+          @click="step === 3 ? submit() : step === 2 ? confirm() : advance()"
+        >
+          <template v-if="step === 3">
+            Enviar <Send :size="15" class="ml-1.5" />
+          </template>
+          <template v-else>
+            Continuar <ChevronRight :size="16" class="ml-1" />
+          </template>
+        </UiButton>
+      </div>
     </div>
 
   </div>
 </template>
+
+<style scoped>
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-approved-fg);
+  flex-shrink: 0;
+  animation: pulse-ring 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(34,197,94,0.5), 0 0 6px 2px rgba(34,197,94,0.35); }
+  50%       { opacity: 0.7; box-shadow: 0 0 0 5px rgba(34,197,94,0), 0 0 6px 2px rgba(34,197,94,0.15); }
+}
+</style>
