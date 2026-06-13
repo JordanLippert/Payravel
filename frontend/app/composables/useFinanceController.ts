@@ -1,4 +1,4 @@
-import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
@@ -10,6 +10,8 @@ export function useFinanceController() {
 
   const requests = ref<PaymentRequest[]>([])
   const loading = ref(false)
+  const page = ref(1)
+  const meta = ref<PaginationMeta>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
   const resolving = ref<Set<string>>(new Set())
   const fading = ref<Set<string>>(new Set())
   const sessionApproved = ref(0)
@@ -30,8 +32,8 @@ export function useFinanceController() {
   }
 
   const metrics = computed(() => ({
-    total: requests.value.filter(r => r.status === 'pending').reduce((s, r) => s + Number(r.amount_eur), 0),
-    pending: requests.value.filter(r => r.status === 'pending').length,
+    total: requests.value.reduce((s, r) => s + Number(r.amount_eur), 0),
+    pending: meta.value.total,
     approved: sessionApproved.value,
     rejected: sessionRejected.value,
     expiringIn24h: requests.value.filter(r => isCritical(r)).length,
@@ -40,12 +42,19 @@ export function useFinanceController() {
   async function fetchRequests() {
     loading.value = true
     try {
-      requests.value = await paymentRequestsService.list()
+      const result = await paymentRequestsService.list({ page: page.value, status: 'pending' })
+      requests.value = result.data
+      meta.value = result.meta
     } catch {
       toast.error('Erro ao carregar requisições.')
     } finally {
       loading.value = false
     }
+  }
+
+  function setPage(p: number) {
+    page.value = p
+    fetchRequests()
   }
 
   async function resolve(id: string, status: 'approved' | 'rejected') {
@@ -72,6 +81,9 @@ export function useFinanceController() {
   return {
     requests,
     loading,
+    page,
+    meta,
+    setPage,
     resolving,
     fading,
     metrics,

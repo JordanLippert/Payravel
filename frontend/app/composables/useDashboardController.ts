@@ -1,5 +1,5 @@
 import { useAuthStore } from '~/stores/auth'
-import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { metricsService, type MetricResult } from '~/services/metricsService'
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
@@ -11,6 +11,9 @@ export function useDashboardController() {
 
   const requests = ref<PaymentRequest[]>([])
   const loading = ref(false)
+  const page = ref(1)
+  const statusFilter = ref<string | undefined>(undefined)
+  const meta = ref<PaginationMeta>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
 
   const totalMetric    = ref<MetricResult | null>(null)
   const pendingMetric  = ref<MetricResult | null>(null)
@@ -25,12 +28,25 @@ export function useDashboardController() {
   async function fetchRequests() {
     loading.value = true
     try {
-      requests.value = await paymentRequestsService.list()
+      const result = await paymentRequestsService.list({ page: page.value, status: statusFilter.value })
+      requests.value = result.data
+      meta.value = result.meta
     } catch {
       toast.error('Erro ao carregar requisições.')
     } finally {
       loading.value = false
     }
+  }
+
+  function setPage(p: number) {
+    page.value = p
+    fetchRequests()
+  }
+
+  function setFilter(s: string | undefined) {
+    statusFilter.value = s
+    page.value = 1
+    fetchRequests()
   }
 
   async function fetchTotal() {
@@ -83,6 +99,11 @@ export function useDashboardController() {
     auth,
     requests,
     loading,
+    page,
+    meta,
+    setPage,
+    statusFilter,
+    setFilter,
     totalMetric,    totalLoading,
     pendingMetric,  pendingLoading,
     approvedMetric, approvedLoading,
