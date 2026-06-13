@@ -8,6 +8,7 @@ const isMobile = useIsMobile()
 
 const {
   auth, requests, loading,
+  page, meta, setPage,
   totalMetric, totalLoading,
   pendingMetric, pendingLoading,
   approvedMetric, approvedLoading,
@@ -163,6 +164,13 @@ const nav = computed(() => [
             </tbody>
           </table>
         </div>
+
+        <UiPagination
+          :current-page="meta.current_page"
+          :last-page="meta.last_page"
+          :loading="loading"
+          @change="setPage"
+        />
       </UiCard>
     </main>
   </div>

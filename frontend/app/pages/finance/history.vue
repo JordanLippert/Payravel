@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth'
-import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
 
 definePageMeta({ middleware: 'auth' })
-
 const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const toast = useToast()
-
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const nav = computed(() => [
@@ -30,45 +28,45 @@ const FILTERS: { value: FilterValue; label: string }[] = [
 ]
 
 const slideDirection = ref<'left' | 'right'>('left')
-
-const all = ref<PaymentRequest[]>([])
+const requests = ref<PaymentRequest[]>([])
 const loading = ref(false)
 const statusFilter = ref<FilterValue>('all')
+const page = ref(1)
+const meta = ref<PaginationMeta>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
 
-const resolved = computed(() =>
-  all.value.filter(r => r.status !== 'pending')
-)
-
-const requests = computed(() =>
-  statusFilter.value === 'all'
-    ? resolved.value
-    : resolved.value.filter(r => r.status === statusFilter.value)
-)
-
-const counts = computed(() => ({
-  all:      resolved.value.length,
-  approved: resolved.value.filter(r => r.status === 'approved').length,
-  rejected: resolved.value.filter(r => r.status === 'rejected').length,
-  expired:  resolved.value.filter(r => r.status === 'expired').length,
-}))
-
-async function setFilter(val: FilterValue) {
-  if (val === statusFilter.value) return
-  const oldIdx = FILTERS.findIndex(f => f.value === statusFilter.value)
-  const newIdx = FILTERS.findIndex(f => f.value === val)
-  slideDirection.value = newIdx > oldIdx ? 'left' : 'right'
-  statusFilter.value = val
+function statusParam(filter: FilterValue): string {
+  return filter === 'all' ? 'resolved' : filter
 }
 
 async function fetch() {
   loading.value = true
   try {
-    all.value = await paymentRequestsService.list()
+    const result = await paymentRequestsService.list({
+      page: page.value,
+      status: statusParam(statusFilter.value),
+    })
+    requests.value = result.data
+    meta.value = result.meta
   } catch {
     toast.error('Erro ao carregar histórico.')
   } finally {
     loading.value = false
   }
+}
+
+function setFilter(val: FilterValue) {
+  if (val === statusFilter.value) return
+  const oldIdx = FILTERS.findIndex(f => f.value === statusFilter.value)
+  const newIdx = FILTERS.findIndex(f => f.value === val)
+  slideDirection.value = newIdx > oldIdx ? 'left' : 'right'
+  statusFilter.value = val
+  page.value = 1
+  fetch()
+}
+
+function setPage(p: number) {
+  page.value = p
+  fetch()
 }
 
 function formatDate(date?: string) {
@@ -112,15 +110,6 @@ onMounted(fetch)
             }"
           >
             {{ opt.label }}
-            <span
-              v-if="counts[opt.value] > 0"
-              class="text-xs"
-              style="padding: 1px 6px; border-radius: 99px; font-variant-numeric: tabular-nums;"
-              :style="{
-                background: statusFilter === opt.value ? 'var(--border-subtle)' : 'transparent',
-                color: statusFilter === opt.value ? 'var(--text-secondary)' : 'var(--text-muted)',
-              }"
-            >{{ counts[opt.value] }}</span>
           </button>
         </div>
       </div>
@@ -212,6 +201,12 @@ onMounted(fetch)
             </div>
           </div>
         </Transition>
+        <UiPagination
+          :current-page="meta.current_page"
+          :last-page="meta.last_page"
+          :loading="loading"
+          @change="setPage"
+        />
       </UiCard>
     </main>
   </div>

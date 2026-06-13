@@ -12,7 +12,7 @@ import {
   type ChartOptions,
 } from 'chart.js'
 import { useAuthStore } from '~/stores/auth'
-import { paymentRequestsService, type PaymentRequest } from '~/services/paymentRequestsService'
+import { paymentRequestsService, type ReportsSummary } from '~/services/paymentRequestsService'
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
@@ -33,50 +33,20 @@ const nav = computed(() => [
   { label: 'Relatórios', to: '/finance/reports', active: true },
 ])
 
-const all = ref<PaymentRequest[]>([])
+const summary = ref<ReportsSummary | null>(null)
 const loading = ref(true)
 
-const metrics = computed(() => {
-  const approved = all.value.filter(r => r.status === 'approved')
-  const rejected = all.value.filter(r => r.status === 'rejected')
-  const pending  = all.value.filter(r => r.status === 'pending')
-  const resolved = approved.length + rejected.length
+const metrics = computed(() => ({
+  totalEur:      summary.value?.total_eur      ?? 0,
+  approvedCount: summary.value?.approved_count ?? 0,
+  rejectedCount: summary.value?.rejected_count ?? 0,
+  pendingCount:  summary.value?.pending_count  ?? 0,
+  expiredCount:  summary.value?.expired_count  ?? 0,
+  approvalRate:  summary.value?.approval_rate  ?? 0,
+}))
 
-  return {
-    totalEur:     approved.reduce((s, r) => s + Number(r.amount_eur), 0),
-    approvedCount: approved.length,
-    rejectedCount: rejected.length,
-    pendingCount:  pending.length,
-    approvalRate:  resolved > 0 ? Math.round((approved.length / resolved) * 100) : 0,
-  }
-})
-
-const byCurrency = computed(() => {
-  const map = new Map<string, { approved: number; rejected: number; eurApproved: number }>()
-  for (const req of all.value) {
-    if (!map.has(req.currency)) map.set(req.currency, { approved: 0, rejected: 0, eurApproved: 0 })
-    const e = map.get(req.currency)!
-    if (req.status === 'approved') { e.approved++; e.eurApproved += Number(req.amount_eur) }
-    else if (req.status === 'rejected') e.rejected++
-  }
-  return [...map.entries()]
-    .map(([currency, s]) => ({ currency, ...s }))
-    .sort((a, b) => b.eurApproved - a.eurApproved)
-})
-
-const byEmployee = computed(() => {
-  const map = new Map<string, { approved: number; rejected: number; eurApproved: number }>()
-  for (const req of all.value.filter(r => r.status === 'approved' || r.status === 'rejected')) {
-    const name = req.user?.name ?? 'Desconhecido'
-    if (!map.has(name)) map.set(name, { approved: 0, rejected: 0, eurApproved: 0 })
-    const e = map.get(name)!
-    if (req.status === 'approved') { e.approved++; e.eurApproved += Number(req.amount_eur) }
-    else e.rejected++
-  }
-  return [...map.entries()]
-    .map(([name, s]) => ({ name, ...s }))
-    .sort((a, b) => b.eurApproved - a.eurApproved)
-})
+const byCurrency = computed(() => summary.value?.by_currency ?? [])
+const byEmployee = computed(() => summary.value?.by_employee ?? [])
 
 // Doughnut: status distribution
 const donutData = computed<ChartData<'doughnut'>>(() => ({
@@ -85,7 +55,7 @@ const donutData = computed<ChartData<'doughnut'>>(() => ({
     data: [
       metrics.value.approvedCount,
       metrics.value.rejectedCount,
-      all.value.filter(r => r.status === 'expired').length,
+      metrics.value.expiredCount,
       metrics.value.pendingCount,
     ],
     backgroundColor: ['#22c55e33', '#ef444433', '#71717a33', '#f59e0b33'],
@@ -126,7 +96,7 @@ const barData = computed<ChartData<'bar'>>(() => ({
   labels: byCurrency.value.map(r => `${CURRENCY_FLAG[r.currency] ?? ''} ${r.currency}`),
   datasets: [{
     label: 'Aprovado (EUR)',
-    data: byCurrency.value.map(r => r.eurApproved),
+    data: byCurrency.value.map(r => r.eur_approved),
     backgroundColor: '#CC000033',
     borderColor: '#CC0000',
     borderWidth: 1.5,
@@ -170,7 +140,7 @@ const barOptions: ChartOptions<'bar'> = {
 async function fetch() {
   loading.value = true
   try {
-    all.value = await paymentRequestsService.list()
+    summary.value = await paymentRequestsService.reports()
   } catch {
     toast.error('Erro ao carregar relatórios.')
   } finally {
@@ -193,41 +163,36 @@ onMounted(fetch)
 
       <!-- KPI cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
-        <template v-if="loading">
-          <UiCard v-for="n in 4" :key="n">
-            <UiSkeleton width="55%" height="11px" style="margin-bottom: 10px;" />
-            <UiSkeleton width="75px" height="22px" style="margin-bottom: 8px;" />
-            <UiSkeleton width="45%" height="10px" />
-          </UiCard>
-        </template>
-        <template v-else>
-          <UiMetricCard
-            label="Total aprovado"
-            :value="metrics.totalEur"
-            prefix="€ "
-            :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-            sub="valor liberado em EUR"
-            :accent="true"
-          />
-          <UiMetricCard
-            label="Aprovadas"
-            :value="metrics.approvedCount"
-            tone="approved"
-            sub="requisições"
-          />
-          <UiMetricCard
-            label="Rejeitadas"
-            :value="metrics.rejectedCount"
-            tone="rejected"
-            sub="requisições"
-          />
-          <UiMetricCard
-            label="Taxa de aprovação"
-            :value="metrics.approvalRate / 100"
-            :format-options="{ style: 'percent', maximumFractionDigits: 0 }"
-            sub="aprovadas vs revisadas"
-          />
-        </template>
+        <UiMetricCard
+          label="Total aprovado"
+          :value="metrics.totalEur"
+          prefix="€ "
+          :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
+          sub="valor liberado em EUR"
+          :accent="true"
+          :loading="loading"
+        />
+        <UiMetricCard
+          label="Aprovadas"
+          :value="metrics.approvedCount"
+          tone="approved"
+          sub="requisições"
+          :loading="loading"
+        />
+        <UiMetricCard
+          label="Rejeitadas"
+          :value="metrics.rejectedCount"
+          tone="rejected"
+          sub="requisições"
+          :loading="loading"
+        />
+        <UiMetricCard
+          label="Taxa de aprovação"
+          :value="metrics.approvalRate / 100"
+          :format-options="{ style: 'percent', maximumFractionDigits: 0 }"
+          sub="aprovadas vs revisadas"
+          :loading="loading"
+        />
       </div>
 
       <!-- Charts row -->
@@ -313,7 +278,7 @@ onMounted(fetch)
                   <td style="padding: 12px 16px; font-size: 13px; color: var(--status-approved-fg);">{{ row.approved }}</td>
                   <td style="padding: 12px 16px; font-size: 13px; color: var(--status-rejected-fg);">{{ row.rejected }}</td>
                   <td style="padding: 12px 16px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 14px; color: var(--text-primary); font-weight: 500;">
-                    {{ formatEur(row.eurApproved) }}
+                    {{ formatEur(row.eur_approved) }}
                   </td>
                 </tr>
               </tbody>
@@ -360,7 +325,7 @@ onMounted(fetch)
                   <td style="padding: 12px 16px; font-size: 13px; color: var(--status-approved-fg);">{{ row.approved }}</td>
                   <td style="padding: 12px 16px; font-size: 13px; color: var(--status-rejected-fg);">{{ row.rejected }}</td>
                   <td style="padding: 12px 16px; text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 14px; color: var(--text-primary); font-weight: 500;">
-                    {{ formatEur(row.eurApproved) }}
+                    {{ formatEur(row.eur_approved) }}
                   </td>
                 </tr>
               </tbody>
