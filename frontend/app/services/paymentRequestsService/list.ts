@@ -15,6 +15,18 @@ export interface PaymentRequest {
   user?: { name: string }
 }
 
+export interface PaginationMeta {
+  current_page: number
+  last_page: number
+  per_page: number
+  total: number
+}
+
+export interface PaginatedResult {
+  data: PaymentRequest[]
+  meta: PaginationMeta
+}
+
 function coerce(r: any): PaymentRequest {
   return {
     ...r,
@@ -24,7 +36,13 @@ function coerce(r: any): PaymentRequest {
   }
 }
 
-export async function list(): Promise<PaymentRequest[]> {
-  const { data } = await httpClient.get<{ data: any[] }>('/api/payment-requests')
-  return data.data.map(coerce)
+export async function list(params: { page?: number; status?: string } = {}): Promise<PaginatedResult> {
+  const query: Record<string, string | number> = { page: params.page ?? 1 }
+  if (params.status) query.status = params.status
+
+  const { data } = await httpClient.get<{ data: any[]; meta: PaginationMeta }>('/api/payment-requests', { params: query })
+  return {
+    data: data.data.map(coerce),
+    meta: data.meta,
+  }
 }
