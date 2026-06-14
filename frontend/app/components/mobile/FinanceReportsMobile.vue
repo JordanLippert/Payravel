@@ -108,7 +108,8 @@ onMounted(fetchReports)
           :style="{ borderBottom: i < byCurrencyWithPct.length - 1 ? '0.5px solid var(--border-subtle)' : 'none' }"
         >
           <span style="display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary);">
-            {{ row.flag }} {{ row.currency }}
+            <span v-if="row.flag" :class="`fi fi-${row.flag}`" style="width: 16px; height: 12px; border-radius: 2px;" />
+            {{ row.currency }}
           </span>
           <div style="display: flex; align-items: center; gap: 8px;">
             <div style="width: 64px; height: 3px; background: var(--border-strong); border-radius: 999px; overflow: hidden;">

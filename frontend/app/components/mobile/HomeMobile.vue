@@ -2,7 +2,6 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
 import { useDashboardController } from '~/composables/useDashboardController'
-import { CURRENCIES } from '~/config/constants'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
@@ -16,7 +15,6 @@ const {
   formatEur, formatDate,
 } = useDashboardController()
 
-const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 type FilterValue = 'all' | 'pending' | 'approved' | 'rejected'
 

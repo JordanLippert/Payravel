@@ -176,7 +176,7 @@ onMounted(fetchRequests)
                     </td>
                     <td style="padding: 14px 16px; font-size: 14px; color: var(--text-secondary);">
                       <span class="inline-flex items-center" style="gap: 6px;">
-                        <span style="font-size: 15px;">{{ CURRENCY_FLAG[req.currency] ?? '' }}</span>
+                        <span v-if="CURRENCY_FLAG[req.currency]" :class="`fi fi-${CURRENCY_FLAG[req.currency]}`" style="width: 18px; height: 14px; border-radius: 2px;" />
                         {{ req.currency }}
                       </span>
                     </td>

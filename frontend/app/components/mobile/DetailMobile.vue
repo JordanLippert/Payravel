@@ -9,7 +9,7 @@ const { request, loading, timeline, formatEur, formatDate } = useRequestDetailCo
 
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
-const flag = computed(() => request.value ? (CURRENCY_FLAG[request.value.currency] ?? '') : '')
+const flagCode = computed(() => request.value ? (CURRENCY_FLAG[request.value.currency] ?? '') : '')
 
 const timelineItems = computed(() => timeline.value.map(t => ({
   ...t,
@@ -75,8 +75,8 @@ const timelineItems = computed(() => timeline.value.map(t => ({
 
       <!-- Amount hero -->
       <div style="text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px;">
-        <span style="width: 52px; height: 52px; border-radius: 17px; background: var(--bg-input); border: 0.5px solid var(--border-default); display: flex; align-items: center; justify-content: center; font-size: 27px;">
-          {{ flag }}
+        <span style="width: 52px; height: 52px; border-radius: 17px; background: var(--bg-input); border: 0.5px solid var(--border-default); display: flex; align-items: center; justify-content: center;">
+          <span v-if="flagCode" :class="`fi fi-${flagCode}`" style="width: 28px; height: 21px; border-radius: 3px;" />
         </span>
         <div>
           <div style="font-size: 13px; color: var(--text-muted);">{{ request.description }}</div>
@@ -94,7 +94,7 @@ const timelineItems = computed(() => timeline.value.map(t => ({
       <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 15px; overflow: hidden;">
         <div
           v-for="([k, v, mono], i) in [
-            ['Moeda original', `${flag} ${request.currency}`, false],
+            ['Moeda original', request.currency, false],
             ['Valor local', `${request.currency} ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(request.amount_local)}`, true],
             ['Equivalente em EUR', formatEur(request.amount_eur), true],
             ['Taxa aplicada', request.exchange_rate ? String(request.exchange_rate) : '—', true],

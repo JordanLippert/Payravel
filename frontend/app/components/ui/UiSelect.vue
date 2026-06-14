@@ -49,7 +49,7 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
         @click="open = !open"
       >
         <span v-if="selected" class="flex items-center gap-2 flex-1" style="color: var(--text-primary);">
-          <span v-if="selected.flag" class="text-base leading-none">{{ selected.flag }}</span>
+          <span v-if="selected.flag" :class="`fi fi-${selected.flag}`" style="width: 18px; height: 14px; border-radius: 2px;" />
           <span>{{ selected.label }}</span>
         </span>
         <span v-else class="flex-1 text-left" style="color: var(--text-muted);">{{ placeholder }}</span>
@@ -75,7 +75,7 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
             :class="option.value === modelValue ? 'bg-white/[0.06]' : 'hover:bg-white/[0.06]'"
             @click="emit('update:modelValue', option.value); open = false"
           >
-            <span v-if="option.flag" class="text-base leading-none">{{ option.flag }}</span>
+            <span v-if="option.flag" :class="`fi fi-${option.flag}`" style="width: 18px; height: 14px; border-radius: 2px;" />
             <span>{{ option.label }}</span>
             <span v-if="option.meta" class="ml-auto text-xs font-mono" style="color: var(--text-muted);">{{ option.meta }}</span>
           </div>

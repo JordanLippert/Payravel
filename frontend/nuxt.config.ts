@@ -10,7 +10,7 @@ export default defineNuxtConfig({
     },
   },
   modules: ['@pinia/nuxt'],
-  css: ['~/assets/css/main.css', 'vue-advanced-cropper/dist/style.css'],
+  css: ['~/assets/css/main.css', 'vue-advanced-cropper/dist/style.css', 'flag-icons/css/flag-icons.min.css'],
   transpile: ['vue-advanced-cropper'],
   components: [{ path: '~/components', pathPrefix: false }],
   vite: {

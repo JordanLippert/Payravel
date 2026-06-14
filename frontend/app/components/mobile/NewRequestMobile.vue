@@ -90,7 +90,7 @@ const fmtEUR = (n: number) =>
             style="width: 100%; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 13px; background: var(--bg-input); border: 0.5px solid var(--border-default); border-radius: 12px; cursor: pointer; font-family: var(--font-sans);"
             @click="showCurrencySheet = !showCurrencySheet"
           >
-            <span style="font-size: 20px;">{{ selectedCurrency.flag }}</span>
+            <span v-if="selectedCurrency.flag" :class="`fi fi-${selectedCurrency.flag}`" style="width: 22px; height: 16px; border-radius: 2px;" />
             <span style="font-size: 14px; color: var(--text-primary);">{{ selectedCurrency.label }}</span>
             <span style="margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">{{ selectedCurrency.meta ?? selectedCurrency.value }}</span>
             <ChevronRight :size="16" style="color: var(--text-muted);" />
@@ -105,7 +105,7 @@ const fmtEUR = (n: number) =>
               :style="{ background: c.value === currency ? 'var(--bg-input)' : 'transparent' }"
               @click="pickCurrency(c.value)"
             >
-              <span style="font-size: 18px;">{{ c.flag }}</span>
+              <span v-if="c.flag" :class="`fi fi-${c.flag}`" style="width: 22px; height: 16px; border-radius: 2px;" />
               <span style="font-size: 13.5px; color: var(--text-primary);">{{ c.label }}</span>
               <span style="margin-left: auto; font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">{{ c.meta ?? c.value }}</span>
             </button>
@@ -130,7 +130,7 @@ const fmtEUR = (n: number) =>
           </div>
           <div v-if="rateLoading" style="margin-top: 4px;"><UiSkeleton width="180px" height="32px" rounded="6px" /></div>
           <div v-else style="font-family: var(--font-mono); font-size: 26px; font-weight: 500; color: var(--text-primary); font-variant-numeric: tabular-nums;">
-            1 {{ currency }} = {{ rate }} EUR
+            1 EUR = {{ rate?.toFixed(4) }} {{ currency }}
           </div>
           <div style="height: 0.5px; background: var(--border-subtle);" />
           <div class="flex items-center justify-between">
@@ -165,7 +165,7 @@ const fmtEUR = (n: number) =>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; padding: 18px; text-align: center;">
           <div style="font-size: 12px; color: var(--text-muted);">Equivalente em EUR</div>
           <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 6px; font-variant-numeric: tabular-nums;">€ {{ amountEur ? fmtEUR(amountEur) : '0,00' }}</div>
-          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px;">{{ currency }} {{ amountDisplay }} · taxa {{ rate }}</div>
+          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px;">{{ currency }} {{ amountDisplay }} · taxa {{ rate?.toFixed(4) }}</div>
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; overflow: hidden;">
           <div

@@ -48,11 +48,9 @@ const metaLine = computed(() => {
   >
     <!-- top row: flag + desc + status -->
     <div class="flex items-center" style="gap: 10px;">
-      <span style="
-        width: 38px; height: 38px; border-radius: 11px; flex: none;
-        background: var(--bg-input); border: 0.5px solid var(--border-default);
-        display: flex; align-items: center; justify-content: center; font-size: 19px;
-      ">{{ flag }}</span>
+      <span style="width: 38px; height: 38px; border-radius: 11px; flex: none; background: var(--bg-input); border: 0.5px solid var(--border-default); display: flex; align-items: center; justify-content: center;">
+        <span v-if="flag" :class="`fi fi-${flag}`" style="width: 22px; height: 16px; border-radius: 2px;" />
+      </span>
       <div class="flex-1 min-w-0">
         <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
           {{ request.description }}

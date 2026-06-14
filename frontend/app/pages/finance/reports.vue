@@ -93,7 +93,7 @@ const donutOptions: ChartOptions<'doughnut'> = {
 
 // Bar: EUR approved by currency
 const barData = computed<ChartData<'bar'>>(() => ({
-  labels: byCurrency.value.map(r => `${CURRENCY_FLAG[r.currency] ?? ''} ${r.currency}`),
+  labels: byCurrency.value.map(r => r.currency),
   datasets: [{
     label: 'Aprovado (EUR)',
     data: byCurrency.value.map(r => r.eur_approved),
@@ -271,7 +271,7 @@ onMounted(fetch)
                   :style="{ borderBottom: i < byCurrency.length - 1 ? '0.5px solid var(--border-subtle)' : 'none' }">
                   <td style="padding: 12px 16px; font-size: 14px; color: var(--text-primary);">
                     <span class="inline-flex items-center" style="gap: 6px;">
-                      <span style="font-size: 15px;">{{ CURRENCY_FLAG[row.currency] ?? '' }}</span>
+                      <span v-if="CURRENCY_FLAG[row.currency]" :class="`fi fi-${CURRENCY_FLAG[row.currency]}`" style="width: 18px; height: 14px; border-radius: 2px;" />
                       {{ row.currency }}
                     </span>
                   </td>
