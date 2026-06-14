@@ -2,15 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ForgotPasswordRequest;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
-use App\Http\Requests\ResetPasswordRequest;
 use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -62,38 +59,5 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out successfully.']);
     }
 
-    /**
-     * @group Authentication
-     * @unauthenticated
-     */
-    public function forgotPassword(ForgotPasswordRequest $request): JsonResponse
-    {
-        $status = Password::sendResetLink($request->only('email'));
 
-        if ($status !== Password::RESET_LINK_SENT) {
-            return response()->json(['message' => 'Email not registered. Please sign up.'], 422);
-        }
-
-        return response()->json(['message' => 'Password reset link sent to your email.']);
-    }
-
-    /**
-     * @group Authentication
-     * @unauthenticated
-     */
-    public function resetPassword(ResetPasswordRequest $request): JsonResponse
-    {
-        $status = Password::reset(
-            $request->only('email', 'password', 'password_confirmation', 'token'),
-            function (User $user, string $password) {
-                $user->update(['password' => $password]);
-            }
-        );
-
-        if ($status !== Password::PASSWORD_RESET) {
-            return response()->json(['message' => 'Invalid or expired reset token.'], 422);
-        }
-
-        return response()->json(['message' => 'Password reset successfully.']);
-    }
 }

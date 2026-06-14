@@ -23,7 +23,6 @@ export const en: Dictionary = {
       emailLabel: 'Email',
       passwordLabel: 'Password',
       submit: 'Sign in',
-      forgotPassword: 'Forgot password?',
       noAccount: "Don't have an account?",
       register: 'Create account',
       heroTitle: 'Multi-currency payments, without borders.',
@@ -39,15 +38,6 @@ export const en: Dictionary = {
       hasAccount: 'Already have an account?',
       login: 'Sign in',
       heroSub: 'Request, convert and track reimbursements — live exchange rates, all in EUR.',
-    },
-    forgot: {
-      title: 'Recover access',
-      subtitle: "Enter your email and we'll send a reset link.",
-      emailLabel: 'Email',
-      submit: 'Send link',
-      backToLogin: '← Back to login',
-      successTitle: 'Email sent',
-      successMessage: 'Check your inbox for {email}.',
     },
   },
   home: {

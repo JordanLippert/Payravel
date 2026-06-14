@@ -82,13 +82,7 @@ const tabs = computed(() => [['login', t('auth.login.submit')], ['register', t('
       </form>
 
       <div style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin-top: auto;">
-        <template v-if="mode === 'login'">
-          {{ t('auth.login.forgotPassword') }}&nbsp;
-          <NuxtLink to="/forgot-password" style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);">
-            {{ t('auth.forgot.title') }}
-          </NuxtLink>
-        </template>
-        <template v-else>
+        <template v-if="mode !== 'login'">
           {{ t('auth.register.hasAccount') }}&nbsp;
           <span style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong); cursor: pointer;" @click="toggleMode">
             {{ t('auth.register.login') }}

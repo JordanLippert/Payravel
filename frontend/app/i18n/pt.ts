@@ -21,7 +21,6 @@ export const pt = {
       emailLabel: 'E-mail',
       passwordLabel: 'Senha',
       submit: 'Entrar',
-      forgotPassword: 'Esqueceu a senha?',
       noAccount: 'Não tem conta?',
       register: 'Criar conta',
       heroTitle: 'Pagamentos multi-moeda, sem fronteiras.',
@@ -37,15 +36,6 @@ export const pt = {
       hasAccount: 'Já tem conta?',
       login: 'Entrar',
       heroSub: 'Solicite, converta e acompanhe reembolsos — câmbio ao vivo, tudo em EUR.',
-    },
-    forgot: {
-      title: 'Recuperar acesso',
-      subtitle: 'Informe seu e-mail e enviaremos um link de redefinição.',
-      emailLabel: 'E-mail',
-      submit: 'Enviar link',
-      backToLogin: '← Voltar para login',
-      successTitle: 'E-mail enviado',
-      successMessage: 'Verifique sua caixa de entrada para {email}.',
     },
   },
   home: {

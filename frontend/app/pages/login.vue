@@ -85,15 +85,7 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
         </form>
 
         <div class="text-center mt-6" style="font-size: 13px; color: var(--text-muted);">
-          <template v-if="mode === 'login'">
-            {{ t('auth.login.forgotPassword') }}
-            <NuxtLink
-              to="/forgot-password"
-              class="ml-1 transition-colors hover:text-white"
-              style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);"
-            >{{ t('auth.forgot.title') }}</NuxtLink>
-          </template>
-          <template v-else>
+          <template v-if="mode !== 'login'">
             {{ t('auth.register.hasAccount') }}
             <span
               class="ml-1 cursor-pointer transition-colors hover:text-white"
