@@ -1,17 +1,19 @@
 <script setup lang="ts">
 import { useRequestDetailController } from '~/composables/useRequestDetailController'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
 
 const { request, loading, timeline, formatEur, formatDate } = useRequestDetailController()
 const auth = useAuthStore()
+const { t } = useT()
 
 const nav = computed(() => [
-  { label: 'Dashboard', to: '/' },
-  { label: 'Requisições', to: '/requests/new' },
-  { label: 'Histórico', to: '/history' },
+  { label: t('nav.dashboard'), to: '/' },
+  { label: t('nav.requests'), to: '/requests/new' },
+  { label: t('nav.history'), to: '/history' },
 ])
 </script>
 
@@ -29,7 +31,7 @@ const nav = computed(() => [
         @mouseenter="($event.target as HTMLElement).style.color = 'var(--text-secondary)'"
         @mouseleave="($event.target as HTMLElement).style.color = 'var(--text-tertiary)'"
         @click="$router.back()"
-      >← Voltar para requisições</button>
+      >{{ t('requests.detail.backLink') }}</button>
 
       <!-- Skeleton -->
       <div v-if="loading" class="grid gap-6" style="grid-template-columns: 1fr 320px;">
@@ -103,16 +105,16 @@ const nav = computed(() => [
           <!-- Conversion details card -->
           <UiCard :padded="false">
             <div style="padding: 8px 24px 16px;">
-              <div class="text-[13px] font-medium py-4" style="color: var(--text-tertiary);">Informações da conversão</div>
+              <div class="text-[13px] font-medium py-4" style="color: var(--text-tertiary);">{{ t('requests.detail.conversionInfo') }}</div>
 
               <div
                 v-for="(row, i) in [
-                  { label: 'Moeda original', value: request.currency, mono: false },
-                  { label: 'Valor local', value: `${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(request.amount_local)} ${request.currency}`, mono: true },
-                  { label: 'Equivalente em EUR', value: formatEur(request.amount_eur), mono: true },
-                  { label: 'Taxa aplicada', value: request.exchange_rate ? String(request.exchange_rate) : '—', mono: true },
-                  { label: 'Fonte da taxa', value: request.exchange_rate_source ?? '—', mono: false },
-                  { label: 'Criada em', value: formatDate(request.created_at), mono: false },
+                  { label: t('requests.detail.originalCurrency'), value: request.currency, mono: false },
+                  { label: t('requests.detail.localValue'), value: `${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(request.amount_local)} ${request.currency}`, mono: true },
+                  { label: t('requests.detail.inEur'), value: formatEur(request.amount_eur), mono: true },
+                  { label: t('requests.detail.rateApplied'), value: request.exchange_rate ? String(request.exchange_rate) : '—', mono: true },
+                  { label: t('requests.detail.rateSource'), value: request.exchange_rate_source ?? '—', mono: false },
+                  { label: t('requests.detail.createdAt'), value: formatDate(request.created_at), mono: false },
                 ]"
                 :key="i"
                 class="flex justify-between items-center py-[13px]"
@@ -136,7 +138,7 @@ const nav = computed(() => [
 
         <!-- Sidebar — timeline -->
         <UiCard style="height: fit-content;">
-          <div class="text-[14px] font-medium mb-5" style="color: var(--text-primary);">Histórico</div>
+          <div class="text-[14px] font-medium mb-5" style="color: var(--text-primary);">{{ t('requests.detail.timeline') }}</div>
           <div class="flex flex-col gap-0">
             <div v-for="(item, i) in timeline" :key="i" class="flex gap-3">
               <div class="flex flex-col items-center">

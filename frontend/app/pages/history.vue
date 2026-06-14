@@ -4,6 +4,7 @@ import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
@@ -11,13 +12,14 @@ const isMobile = useIsMobile()
 const auth = useAuthStore()
 const router = useRouter()
 const toast = useToast()
+const { t } = useT()
 
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const nav = computed(() => [
-  { label: 'Dashboard', to: '/' },
-  { label: 'Requisições', to: '/requests/new' },
-  { label: 'Histórico', to: '/history', active: true },
+  { label: t('nav.dashboard'), to: '/' },
+  { label: t('nav.requests'), to: '/requests/new' },
+  { label: t('nav.history'), to: '/history', active: true },
 ])
 
 type FilterValue = 'all' | 'pending' | 'approved' | 'rejected' | 'expired'
@@ -30,12 +32,29 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'expired',  label: 'Expiradas' },
 ]
 
+const filters = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: 'all',      label: t('history.filters.all') },
+  { value: 'pending',  label: t('history.filters.pending') },
+  { value: 'approved', label: t('history.filters.approved') },
+  { value: 'rejected', label: t('history.filters.rejected') },
+  { value: 'expired',  label: t('history.filters.expired') },
+])
+
 const requests = ref<PaymentRequest[]>([])
 const loading = ref(false)
 const statusFilter = ref<FilterValue>('all')
 const slideDirection = ref<'left' | 'right'>('left')
 const page = ref(1)
 const meta = ref<PaginationMeta>({ current_page: 1, last_page: 1, per_page: 15, total: 0 })
+
+const tableHeaders = computed(() => [
+  t('history.table.description'),
+  t('history.table.localValue'),
+  t('history.table.currency'),
+  t('history.table.inEur'),
+  t('history.table.date'),
+  t('history.table.status'),
+])
 
 async function fetchRequests() {
   loading.value = true
@@ -47,7 +66,7 @@ async function fetchRequests() {
     requests.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar histórico.')
+    toast.error(t('shared.errors.loadHistory'))
   } finally {
     loading.value = false
   }
@@ -86,8 +105,8 @@ onMounted(fetchRequests)
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
       <div class="flex items-end justify-between mb-6">
         <div>
-          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Histórico</h1>
-          <p class="text-sm" style="color: var(--text-tertiary);">Todas as suas requisições de pagamento.</p>
+          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('history.title') }}</h1>
+          <p class="text-sm" style="color: var(--text-tertiary);">{{ t('history.subtitle') }}</p>
         </div>
 
         <!-- Filter pill group -->
@@ -96,7 +115,7 @@ onMounted(fetchRequests)
           style="border: 0.5px solid var(--border-subtle); border-radius: 9px; padding: 3px; background: var(--bg-elevated); gap: 2px;"
         >
           <button
-            v-for="opt in FILTERS"
+            v-for="opt in filters"
             :key="opt.value"
             @click="setFilter(opt.value)"
             class="text-sm transition-colors duration-150"
@@ -118,7 +137,7 @@ onMounted(fetchRequests)
           <table class="w-full" style="border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 0.5px solid var(--border-subtle);">
-                <th v-for="h in ['Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Data', 'Status']" :key="h"
+                <th v-for="h in tableHeaders" :key="h"
                   class="text-left font-medium"
                   style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
                 >{{ h }}</th>
@@ -142,7 +161,7 @@ onMounted(fetchRequests)
         <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
           <div v-if="!loading" :key="statusFilter">
             <div v-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
-              Nenhuma requisição encontrada.
+              {{ t('history.empty') }}
             </div>
 
             <div v-else class="overflow-x-auto">
@@ -150,7 +169,7 @@ onMounted(fetchRequests)
                 <thead>
                   <tr style="border-bottom: 0.5px solid var(--border-subtle);">
                     <th
-                      v-for="h in ['Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Data', 'Status']"
+                      v-for="h in tableHeaders"
                       :key="h"
                       class="text-left font-medium"
                       style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"

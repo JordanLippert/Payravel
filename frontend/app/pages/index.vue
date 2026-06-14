@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { useDashboardController } from '~/composables/useDashboardController'
+import { useT } from '~/composables/useT'
 import { CURRENCIES } from '~/config/constants'
 
 definePageMeta({ middleware: 'auth' })
 
 const isMobile = useIsMobile()
+const { t } = useT()
 
 const {
   auth, requests, loading,
@@ -19,9 +21,18 @@ const {
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const nav = computed(() => [
-  { label: 'Dashboard', to: '/', active: true },
-  { label: 'Requisições', to: '/requests/new' },
-  { label: 'Histórico', to: '/history' },
+  { label: t('nav.dashboard'), to: '/', active: true },
+  { label: t('nav.requests'), to: '/requests/new' },
+  { label: t('nav.history'), to: '/history' },
+])
+
+const tableHeaders = computed(() => [
+  t('home.table.description'),
+  t('home.table.localValue'),
+  t('home.table.currency'),
+  t('home.table.inEur'),
+  t('home.table.date'),
+  t('home.table.status'),
 ])
 </script>
 
@@ -34,53 +45,53 @@ const nav = computed(() => [
       <!-- Page header -->
       <div class="flex items-end justify-between mb-6">
         <div>
-          <h1 class="text-white font-medium" style="font-size: 22px;">Olá, {{ auth.user?.name?.split(' ')[0] }}</h1>
-          <p class="text-sm mt-1" style="color: var(--text-tertiary);">Suas requisições de pagamento deste mês.</p>
+          <h1 class="text-white font-medium" style="font-size: 22px;">{{ t('home.greeting', { name: auth.user?.name?.split(' ')[0] ?? '' }) }}</h1>
+          <p class="text-sm mt-1" style="color: var(--text-tertiary);">{{ t('home.subtitle') }}</p>
         </div>
         <NuxtLink to="/requests/new">
-          <UiButton variant="primary" size="sm">+ Nova requisição</UiButton>
+          <UiButton variant="primary" size="sm">{{ t('home.newRequest') }}</UiButton>
         </NuxtLink>
       </div>
 
       <!-- KPI cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
         <UiMetricCard
-          label="Total enviado"
+          :label="t('home.totalSent')"
           :value="totalMetric?.amount ?? 0"
           prefix="€ "
           :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
           :sub-value="totalMetric?.count ?? 0"
-          :sub-suffix="(totalMetric?.count ?? 0) === 1 ? 'requisição' : 'requisições'"
+          :sub-suffix="(totalMetric?.count ?? 0) === 1 ? t('home.request') : t('home.requests')"
           :accent="true"
           :loading="totalLoading"
         />
         <UiMetricCard
-          label="Pendente"
+          :label="t('home.pending')"
           :value="pendingMetric?.count ?? 0"
           :sub-value="pendingMetric?.amount ?? 0"
           sub-prefix="€ "
           :sub-format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-          sub-suffix="em revisão"
+          :sub-suffix="t('home.inReview')"
           tone="pending"
           :loading="pendingLoading"
         />
         <UiMetricCard
-          label="Aprovado"
+          :label="t('home.approved')"
           :value="approvedMetric?.count ?? 0"
           :sub-value="approvedMetric?.amount ?? 0"
           sub-prefix="€ "
           :sub-format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-          sub-suffix="liberados"
+          :sub-suffix="t('home.released')"
           tone="approved"
           :loading="approvedLoading"
         />
         <UiMetricCard
-          label="Rejeitado"
+          :label="t('home.rejected')"
           :value="rejectedMetric?.count ?? 0"
           :sub-value="rejectedMetric?.amount ?? 0"
           sub-prefix="€ "
           :sub-format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-          sub-suffix="recusados"
+          :sub-suffix="t('home.refused')"
           tone="rejected"
           :loading="rejectedLoading"
         />
@@ -91,13 +102,13 @@ const nav = computed(() => [
         <div
           class="text-sm font-medium"
           style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-        >Requisições recentes</div>
+        >{{ t('home.recentRequests') }}</div>
 
         <div v-if="loading" class="overflow-x-auto">
           <table class="w-full" style="border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 0.5px solid var(--border-subtle);">
-                <th v-for="h in ['Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Data', 'Status']" :key="h"
+                <th v-for="h in tableHeaders" :key="h"
                   class="text-left font-medium"
                   style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
                 >{{ h }}</th>
@@ -118,14 +129,14 @@ const nav = computed(() => [
           </table>
         </div>
 
-        <div v-else-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">Nenhuma requisição encontrada.</div>
+        <div v-else-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">{{ t('home.empty') }}</div>
 
         <div v-else class="overflow-x-auto">
           <table class="w-full" style="border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 0.5px solid var(--border-subtle);">
                 <th
-                  v-for="h in ['Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Data', 'Status']"
+                  v-for="h in tableHeaders"
                   :key="h"
                   class="text-left font-medium"
                   style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"

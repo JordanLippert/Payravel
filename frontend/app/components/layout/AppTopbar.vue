@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import { LogOut, User } from '@lucide/vue'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 interface NavItem { label: string; active?: boolean; to?: string }
 interface User { name: string; role?: string | null }
@@ -26,6 +27,7 @@ onClickOutside(menuRef, () => { menuOpen.value = false })
 
 const auth = useAuthStore()
 const router = useRouter()
+const { t } = useT()
 
 async function logout() {
   menuOpen.value = false
@@ -59,6 +61,7 @@ async function logout() {
     </nav>
 
     <div class="ml-auto flex items-center gap-2">
+      <UiLangToggle />
       <UiNotificationBell />
 
       <div class="relative" ref="menuRef">
@@ -84,7 +87,7 @@ async function logout() {
             @mouseleave="($event.currentTarget as HTMLElement).style.background = 'transparent'"
             @click="menuOpen = false"
           >
-            Perfil
+            {{ t('profile.menu.profile') }}
             <User :size="14" style="color: var(--text-muted);" />
           </NuxtLink>
 
@@ -98,7 +101,7 @@ async function logout() {
             @mouseleave="($event.currentTarget as HTMLElement).style.background = 'transparent'"
             @click="logout"
           >
-            Sair
+            {{ t('profile.menu.logout') }}
             <LogOut :size="14" />
           </button>
         </div>

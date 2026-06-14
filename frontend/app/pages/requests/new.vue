@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useNewRequestController } from '~/composables/useNewRequestController'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 
@@ -14,18 +15,19 @@ const {
 } = useNewRequestController()
 
 const auth = useAuthStore()
+const { t } = useT()
 
 const nav = computed(() => [
-  { label: 'Dashboard', to: '/' },
-  { label: 'Requisições', to: '/requests/new', active: true },
-  { label: 'Histórico', to: '/history' },
+  { label: t('nav.dashboard'), to: '/' },
+  { label: t('nav.requests'), to: '/requests/new', active: true },
+  { label: t('nav.history'), to: '/history' },
 ])
 
-const steps = [
-  { title: 'Detalhes', desc: 'Descrição e valor' },
-  { title: 'Câmbio', desc: 'Taxa ao vivo' },
-  { title: 'Revisão', desc: 'Confirmar e enviar' },
-]
+const steps = computed(() => [
+  { title: t('requests.new.steps.details'), desc: t('requests.new.steps.detailsSub') },
+  { title: t('requests.new.steps.exchange'), desc: t('requests.new.steps.exchangeSub') },
+  { title: t('requests.new.steps.review'), desc: t('requests.new.steps.reviewSub') },
+])
 
 const stepperCurrent = computed(() => step.value - 1)
 
@@ -39,7 +41,7 @@ const fmtEUR = (n: number) =>
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '' }" />
 
     <main class="px-8 py-8" style="max-width: 1000px; margin: 0 auto;">
-      <h1 class="font-medium mb-6" style="font-size: 22px; color: var(--text-primary);">Nova requisição de pagamento</h1>
+      <h1 class="font-medium mb-6" style="font-size: 22px; color: var(--text-primary);">{{ t('requests.new.title') }}</h1>
 
       <div class="flex flex-col lg:grid gap-6 lg:gap-[40px]" style="grid-template-columns: 220px 1fr;">
         <!-- Stepper sidebar -->
@@ -54,15 +56,15 @@ const fmtEUR = (n: number) =>
             <!-- Step 1: Detalhes -->
             <template v-if="step === 1">
               <UiInput
-                label="Descrição"
+                :label="t('requests.new.form.description')"
                 v-model="description"
-                placeholder="Ex. Licença de software"
+                :placeholder="t('requests.new.form.descriptionPlaceholderDesktop')"
                 :hint="errors.description"
               />
 
               <div class="grid grid-cols-2" style="gap: 14px;">
                 <UiInput
-                  label="Valor"
+                  :label="t('requests.new.form.value')"
                   :model-value="amountDisplay"
                   placeholder="0,00"
                   :mono="true"
@@ -70,7 +72,7 @@ const fmtEUR = (n: number) =>
                   @keydown="onAmountKey"
                 />
                 <UiSelect
-                  label="Moeda"
+                  :label="t('requests.new.form.currency')"
                   v-model="currency"
                   :options="CURRENCIES"
                   placeholder="Selecionar"
@@ -85,27 +87,27 @@ const fmtEUR = (n: number) =>
                   style="color: var(--text-muted);"
                 >
                   <span class="pulse-dot" />
-                  Buscando taxa de câmbio...
+                  {{ t('requests.new.exchange.fetchingRate') }}
                 </div>
                 <div
                   v-else-if="fetchFailed"
                   class="flex items-center gap-2 text-xs font-sans"
                   style="color: var(--text-muted);"
                 >
-                  Não foi possível obter a taxa.
+                  {{ t('requests.new.exchange.unavailable') }}
                   <button
                     type="button"
                     class="underline bg-transparent border-none p-0 cursor-pointer text-xs font-sans"
                     style="color: var(--text-secondary);"
                     @click="retryFetch"
-                  >Tentar novamente</button>
+                  >{{ t('requests.new.exchange.retry') }}</button>
                 </div>
                 <div v-else />
 
                 <div class="flex" style="gap: 10px;">
-                  <UiButton type="button" variant="ghost" @click="$router.push('/')">Cancelar</UiButton>
+                  <UiButton type="button" variant="ghost" @click="navigateTo('/')">{{ t('requests.new.buttons.cancel') }}</UiButton>
                   <UiButton type="button" variant="primary" :loading="advancing" @click="advance">
-                    Ver câmbio
+                    {{ t('requests.new.buttons.viewExchange') }}
                   </UiButton>
                 </div>
               </div>
@@ -115,8 +117,8 @@ const fmtEUR = (n: number) =>
             <template v-else-if="step === 2">
               <!-- Resumo step 1 (readonly) -->
               <div class="grid grid-cols-2" style="gap: 14px;">
-                <UiInput label="Valor" :model-value="amountDisplay" :mono="true" :readonly="true" />
-                <UiInput label="Moeda" :model-value="currency" :readonly="true" />
+                <UiInput :label="t('requests.new.form.value')" :model-value="amountDisplay" :mono="true" :readonly="true" />
+                <UiInput :label="t('requests.new.form.currency')" :model-value="currency" :readonly="true" />
               </div>
 
               <div style="height: 0.5px; background: var(--border-subtle);" />
@@ -124,7 +126,7 @@ const fmtEUR = (n: number) =>
               <!-- Taxa de câmbio -->
               <div class="grid grid-cols-2" style="gap: 14px;">
                 <UiInput
-                  label="Taxa de câmbio"
+                  :label="t('requests.new.exchange.rate')"
                   :model-value="rate ? String(rate.toFixed(4)) : '—'"
                   :mono="true"
                   :readonly="true"
@@ -141,7 +143,7 @@ const fmtEUR = (n: number) =>
                 </UiInput>
 
                 <UiInput
-                  label="Equivalente em EUR"
+                  :label="t('requests.new.exchange.inEurEquivalent')"
                   :model-value="amountEur ? `€ ${fmtEUR(amountEur)}` : '€ 0,00'"
                   :mono="true"
                   :readonly="true"
@@ -156,19 +158,19 @@ const fmtEUR = (n: number) =>
                 style="background: var(--bg-elevated); border: 0.5px solid var(--border-subtle); color: var(--text-muted);"
               >
                 <span class="w-1.5 h-1.5 rounded-full flex-none" style="background: var(--status-approved-fg); box-shadow: 0 0 6px 2px rgba(34,197,94,0.4);"></span>
-                <span>Taxa ao vivo · atualiza a cada 30 min</span>
+                <span>{{ t('requests.new.exchange.liveInfo') }}</span>
                 <template v-if="rateValidFor !== null">
                   <span style="color: var(--border-default);">·</span>
                   <span :style="{ color: rateValidFor <= 5 ? 'var(--status-rejected-fg)' : 'var(--text-muted)', fontFamily: 'var(--font-mono)' }">
-                    válida por ~{{ rateValidFor }} min
+                    {{ t('requests.new.exchange.validFor', { min: String(rateValidFor) }) }}
                   </span>
                 </template>
               </div>
 
               <div class="flex justify-end" style="gap: 10px; margin-top: 8px;">
-                <UiButton type="button" variant="ghost" @click="step = 1">Voltar</UiButton>
+                <UiButton type="button" variant="ghost" @click="step = 1">{{ t('requests.new.buttons.back') }}</UiButton>
                 <UiButton type="button" variant="primary" @click="confirm">
-                  Revisar pedido
+                  {{ t('requests.new.buttons.reviewOrder') }}
                 </UiButton>
               </div>
             </template>
@@ -178,11 +180,11 @@ const fmtEUR = (n: number) =>
               <div>
                 <div
                   v-for="(row, i) in [
-                    { label: 'Descrição', value: description, mono: false },
-                    { label: 'Valor', value: `${amountDisplay} ${currency}`, mono: true },
-                    { label: 'Taxa aplicada', value: rate ? rate.toFixed(4) : '—', mono: true, badge: true },
-                    { label: 'Fonte da taxa', value: rateSource ?? '—', mono: false },
-                    { label: 'Equivalente em EUR', value: amountEur ? `€ ${fmtEUR(amountEur)}` : '€ 0,00', mono: true },
+                    { label: t('requests.new.review.description'), value: description, mono: false },
+                    { label: t('requests.new.review.localValue'), value: `${amountDisplay} ${currency}`, mono: true },
+                    { label: t('requests.new.review.rateApplied'), value: rate ? rate.toFixed(4) : '—', mono: true, badge: true },
+                    { label: t('requests.new.review.rateSource'), value: rateSource ?? '—', mono: false },
+                    { label: t('requests.new.review.inEur'), value: amountEur ? `€ ${fmtEUR(amountEur)}` : '€ 0,00', mono: true },
                   ]"
                   :key="i"
                   class="flex justify-between items-center py-[13px]"
@@ -211,9 +213,9 @@ const fmtEUR = (n: number) =>
               </div>
 
               <div class="flex justify-end" style="gap: 10px; margin-top: 8px;">
-                <UiButton type="button" variant="ghost" :disabled="loading" @click="step = 2">Voltar</UiButton>
+                <UiButton type="button" variant="ghost" :disabled="loading" @click="step = 2">{{ t('requests.new.buttons.back') }}</UiButton>
                 <UiButton type="button" variant="primary" :loading="loading" @click="submit">
-                  Enviar para aprovação
+                  {{ t('requests.new.buttons.send') }}
                 </UiButton>
               </div>
             </template>

@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useLoginController } from '~/composables/useLoginController'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ layout: 'auth' })
 const isMobile = useIsMobile()
+const { t } = useT()
 
 const { mode, loading, name, email, password, errors, toggleMode, submit } = useLoginController()
 </script>
@@ -17,10 +19,10 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
       <AppLogo :animated="false" color="white" knockout="#CC0000" wordmark-color="white" :size="54" />
       <div>
         <h1 class="text-white text-[40px] font-medium leading-tight mb-4 tracking-tight">
-          Pagamentos multi-moeda,<br>sem fronteiras.
+          {{ t('auth.login.heroTitle') }}
         </h1>
         <p class="text-white/70 text-base">
-          Solicite, converta e aprove reembolsos da sua equipe global — câmbio ao vivo, tudo em EUR.
+          {{ t('auth.login.heroSub') }}
         </p>
       </div>
       <p class="text-white/40 text-sm">© 2026 Payravel · Jordan Lippert</p>
@@ -34,29 +36,29 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
         </div>
 
         <h2 class="text-white text-[22px] font-medium mb-2">
-          {{ mode === 'login' ? 'Entrar na conta' : 'Criar conta' }}
+          {{ mode === 'login' ? t('auth.login.title') : t('auth.register.title') }}
         </h2>
         <p class="text-white/50 text-sm mb-8">
-          {{ mode === 'login' ? 'Acesse seu painel de requisições.' : 'Comece a solicitar pagamentos hoje.' }}
+          {{ mode === 'login' ? t('auth.login.subtitle') : t('auth.register.subtitle') }}
         </p>
 
         <form @submit.prevent="submit" class="flex flex-col gap-[14px]">
           <UiInput
             v-if="mode === 'register'"
-            label="Nome completo"
+            :label="t('auth.register.nameLabel')"
             v-model="name"
             placeholder="Marina Alves"
             :hint="errors.name"
           />
           <UiInput
-            label="E-mail"
+            :label="t('auth.login.emailLabel')"
             type="email"
             v-model="email"
             placeholder="seu@email.com"
             :hint="errors.email"
           />
           <UiInput
-            label="Senha"
+            :label="t('auth.login.passwordLabel')"
             type="password"
             v-model="password"
             placeholder="••••••••"
@@ -70,34 +72,34 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
               class="flex-1"
               :loading="loading"
             >
-              {{ mode === 'login' ? 'Entrar' : 'Registrar' }}
+              {{ mode === 'login' ? t('auth.login.submit') : t('auth.register.submit') }}
             </UiButton>
             <UiButton
               type="button"
               variant="ghost"
               @click="toggleMode"
             >
-              {{ mode === 'login' ? 'Registrar' : 'Entrar' }}
+              {{ mode === 'login' ? t('auth.register.submit') : t('auth.register.login') }}
             </UiButton>
           </div>
         </form>
 
         <div class="text-center mt-6" style="font-size: 13px; color: var(--text-muted);">
           <template v-if="mode === 'login'">
-            Esqueceu a senha?
+            {{ t('auth.login.forgotPassword') }}
             <NuxtLink
               to="/forgot-password"
               class="ml-1 transition-colors hover:text-white"
               style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);"
-            >Recuperar acesso</NuxtLink>
+            >{{ t('auth.forgot.title') }}</NuxtLink>
           </template>
           <template v-else>
-            Já tem conta?
+            {{ t('auth.register.hasAccount') }}
             <span
               class="ml-1 cursor-pointer transition-colors hover:text-white"
               style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);"
               @click="toggleMode"
-            >Entrar</span>
+            >{{ t('auth.register.login') }}</span>
           </template>
         </div>
       </div>

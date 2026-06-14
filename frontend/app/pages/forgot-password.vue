@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useForgotPasswordController } from '~/composables/useForgotPasswordController'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ layout: 'auth' })
 const isMobile = useIsMobile()
+const { t } = useT()
 
 const { loading, sent, email, errors, submit } = useForgotPasswordController()
 </script>
@@ -15,10 +17,10 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
       <AppLogo :animated="false" color="white" knockout="#CC0000" wordmark-color="white" :size="54" />
       <div>
         <h1 class="text-white text-[40px] font-medium leading-tight mb-4 tracking-tight">
-          Pagamentos multi-moeda,<br>sem fronteiras.
+          {{ t('auth.login.heroTitle') }}
         </h1>
         <p class="text-white/70 text-base">
-          Solicite, converta e aprove reembolsos da sua equipe global — câmbio ao vivo, tudo em EUR.
+          {{ t('auth.login.heroSub') }}
         </p>
       </div>
       <p class="text-white/40 text-sm">© 2026 Payravel · Jordan Lippert</p>
@@ -32,14 +34,14 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
         </div>
 
         <template v-if="!sent">
-          <h2 class="text-white text-[22px] font-medium mb-2">Recuperar acesso</h2>
+          <h2 class="text-white text-[22px] font-medium mb-2">{{ t('auth.forgot.title') }}</h2>
           <p class="text-white/50 text-sm mb-8">
-            Informe seu e-mail para receber o link de recuperação.
+            {{ t('auth.forgot.subtitle') }}
           </p>
 
           <form @submit.prevent="submit" class="flex flex-col gap-[14px]">
             <UiInput
-              label="E-mail"
+              :label="t('auth.forgot.emailLabel')"
               type="email"
               v-model="email"
               placeholder="seu@email.com"
@@ -48,16 +50,16 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
 
             <div class="flex gap-[10px] mt-2">
               <UiButton type="submit" variant="primary" class="flex-1" :loading="loading">
-                Enviar link
+                {{ t('auth.forgot.submit') }}
               </UiButton>
             </div>
           </form>
         </template>
 
         <template v-else>
-          <h2 class="text-white text-[22px] font-medium mb-2">E-mail enviado</h2>
+          <h2 class="text-white text-[22px] font-medium mb-2">{{ t('auth.forgot.successTitle') }}</h2>
           <p class="text-white/50 text-sm mb-8">
-            Verifique sua caixa de entrada. O link de recuperação foi enviado para <span class="text-white/80">{{ email }}</span>.
+            {{ t('auth.forgot.successMessage', { email: email }) }}
           </p>
         </template>
 
@@ -66,7 +68,7 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
             to="/login"
             class="transition-colors hover:text-white"
             style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);"
-          >← Voltar para login</NuxtLink>
+          >{{ t('auth.forgot.backToLogin') }}</NuxtLink>
         </div>
       </div>
     </div>

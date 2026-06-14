@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { useProfileController } from '~/composables/useProfileController'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 import { Camera } from '@lucide/vue'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
 
 const auth = useAuthStore()
+const { t } = useT()
 const {
   profile, loading,
   infoForm, infoSaving, infoErrors, saveInfo,
@@ -19,19 +21,19 @@ const {
 const nav = computed(() =>
   auth.isFinance
     ? [
-        { label: 'Fila de aprovação', to: '/finance' },
-        { label: 'Histórico', to: '/finance/history' },
-        { label: 'Relatórios', to: '/finance/reports' },
+        { label: t('nav.queue'), to: '/finance' },
+        { label: t('nav.history'), to: '/finance/history' },
+        { label: t('nav.reports'), to: '/finance/reports' },
       ]
     : [
-        { label: 'Dashboard', to: '/' },
-        { label: 'Requisições', to: '/requests/new' },
-        { label: 'Histórico', to: '/history' },
+        { label: t('nav.dashboard'), to: '/' },
+        { label: t('nav.requests'), to: '/requests/new' },
+        { label: t('nav.history'), to: '/history' },
       ]
 )
 
 const roleLabel = computed(() =>
-  profile.value?.role === 'finance' ? 'Finance' : 'Employee'
+  profile.value?.role === 'finance' ? t('profile.roles.finance') : t('profile.roles.employee')
 )
 </script>
 
@@ -42,8 +44,8 @@ const roleLabel = computed(() =>
 
     <main class="px-8 py-8" style="max-width: 680px; margin: 0 auto;">
       <div class="mb-6">
-        <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Perfil</h1>
-        <p class="text-sm" style="color: var(--text-tertiary);">Gerencie suas informações e segurança da conta.</p>
+        <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('profile.title') }}</h1>
+        <p class="text-sm" style="color: var(--text-tertiary);">{{ t('profile.subtitle') }}</p>
       </div>
 
       <!-- Skeleton -->
@@ -129,25 +131,25 @@ const roleLabel = computed(() =>
             <div class="flex flex-col gap-5">
               <UiInput
                 v-model="infoForm.name"
-                label="Nome"
+                :label="t('profile.name')"
                 :hint="infoErrors.name"
               />
               <UiInput
                 v-model="infoForm.email"
-                label="E-mail"
+                :label="t('profile.email')"
                 type="email"
                 :hint="infoErrors.email"
               />
               <UiSelect
                 v-model="infoForm.currency"
-                label="Moeda padrão"
+                :label="t('profile.defaultCurrency')"
                 :options="CURRENCIES.map(c => ({ value: c.value, label: c.label, flag: c.flag }))"
               />
             </div>
 
             <div class="flex justify-end mt-6">
               <UiButton variant="primary" size="sm" :loading="infoSaving" @click="saveInfo">
-                Salvar alterações
+                {{ t('profile.save') }}
               </UiButton>
             </div>
           </div>
@@ -157,25 +159,25 @@ const roleLabel = computed(() =>
         <UiCard :padded="false">
           <div style="padding: 28px;">
             <div class="text-[13px] font-medium mb-6" style="color: var(--text-tertiary);">
-              Alterar senha
+              {{ t('profile.password.title') }}
             </div>
 
             <div class="flex flex-col gap-5">
               <UiInput
                 v-model="passForm.current_password"
-                label="Senha atual"
+                :label="t('profile.password.current')"
                 type="password"
                 :hint="passErrors.current_password"
               />
               <UiInput
                 v-model="passForm.password"
-                label="Nova senha"
+                :label="t('profile.password.new')"
                 type="password"
                 :hint="passErrors.password"
               />
               <UiInput
                 v-model="passForm.password_confirmation"
-                label="Confirmar nova senha"
+                :label="t('profile.password.confirm')"
                 type="password"
                 :hint="passErrors.password_confirmation"
               />
@@ -183,7 +185,7 @@ const roleLabel = computed(() =>
 
             <div class="flex justify-end mt-6">
               <UiButton variant="primary" size="sm" :loading="passSaving" @click="savePassword">
-                Alterar senha
+                {{ t('profile.password.submit') }}
               </UiButton>
             </div>
           </div>

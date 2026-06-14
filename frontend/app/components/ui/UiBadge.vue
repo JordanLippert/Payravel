@@ -1,5 +1,7 @@
 <!-- frontend/components/ui/UiBadge.vue -->
 <script setup lang="ts">
+import { useT } from '~/composables/useT'
+
 type Status = 'pending' | 'approved' | 'rejected' | 'expired' | 'neutral'
 
 const props = withDefaults(defineProps<{
@@ -10,13 +12,15 @@ const props = withDefaults(defineProps<{
   dot: true,
 })
 
-const labels: Record<Status, string> = {
-  pending: 'Pendente',
-  approved: 'Aprovado',
-  rejected: 'Rejeitado',
-  expired: 'Expirado',
-  neutral: '',
-}
+const { t } = useT()
+
+const labels = computed<Record<Status, string>>(() => ({
+  pending:  t('shared.status.pending'),
+  approved: t('shared.status.approved'),
+  rejected: t('shared.status.rejected'),
+  expired:  t('shared.status.expired'),
+  neutral:  '',
+}))
 
 const styles: Record<Status, { color: string; bg: string; border: string; dotShadow: string | null }> = {
   pending:  { color: 'var(--status-pending-fg)',  bg: 'var(--status-pending-bg)',  border: 'var(--status-pending-border)',  dotShadow: '0 0 5px 1px rgba(245,165,36,0.55)' },

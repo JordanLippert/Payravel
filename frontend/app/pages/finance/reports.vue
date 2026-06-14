@@ -16,6 +16,7 @@ import { paymentRequestsService, type ReportsSummary } from '~/services/paymentR
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
+import { useT } from '~/composables/useT'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement)
 
@@ -24,13 +25,14 @@ const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const toast = useToast()
+const { t } = useT()
 
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const nav = computed(() => [
-  { label: 'Fila de aprovação', to: '/finance' },
-  { label: 'Histórico', to: '/finance/history' },
-  { label: 'Relatórios', to: '/finance/reports', active: true },
+  { label: t('nav.queue'), to: '/finance' },
+  { label: t('nav.history'), to: '/finance/history' },
+  { label: t('nav.reports'), to: '/finance/reports', active: true },
 ])
 
 const summary = ref<ReportsSummary | null>(null)
@@ -50,7 +52,7 @@ const byEmployee = computed(() => summary.value?.by_employee ?? [])
 
 // Doughnut: status distribution
 const donutData = computed<ChartData<'doughnut'>>(() => ({
-  labels: ['Aprovadas', 'Rejeitadas', 'Expiradas', 'Pendentes'],
+  labels: [t('reports.metrics.approved'), t('reports.metrics.rejected'), t('history.filters.expired'), t('history.filters.pending')],
   datasets: [{
     data: [
       metrics.value.approvedCount,
@@ -95,7 +97,7 @@ const donutOptions: ChartOptions<'doughnut'> = {
 const barData = computed<ChartData<'bar'>>(() => ({
   labels: byCurrency.value.map(r => r.currency),
   datasets: [{
-    label: 'Aprovado (EUR)',
+    label: t('reports.charts.currencyValue'),
     data: byCurrency.value.map(r => r.eur_approved),
     backgroundColor: '#CC000033',
     borderColor: '#CC0000',
@@ -142,7 +144,7 @@ async function fetch() {
   try {
     summary.value = await paymentRequestsService.reports()
   } catch {
-    toast.error('Erro ao carregar relatórios.')
+    toast.error(t('shared.errors.loadReports'))
   } finally {
     loading.value = false
   }
@@ -158,39 +160,39 @@ onMounted(fetch)
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
-      <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Relatórios</h1>
-      <p class="text-sm mb-6" style="color: var(--text-tertiary);">Resumo consolidado das requisições de pagamento.</p>
+      <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('reports.title') }}</h1>
+      <p class="text-sm mb-6" style="color: var(--text-tertiary);">{{ t('reports.subtitle') }}</p>
 
       <!-- KPI cards -->
       <div class="grid grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
         <UiMetricCard
-          label="Total aprovado"
+          :label="t('reports.metrics.totalApproved')"
           :value="metrics.totalEur"
           prefix="€ "
           :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-          sub="valor liberado em EUR"
+          :sub="t('reports.metrics.releasedEur')"
           :accent="true"
           :loading="loading"
         />
         <UiMetricCard
-          label="Aprovadas"
+          :label="t('reports.metrics.approved')"
           :value="metrics.approvedCount"
           tone="approved"
-          sub="requisições"
+          :sub="t('reports.metrics.requests')"
           :loading="loading"
         />
         <UiMetricCard
-          label="Rejeitadas"
+          :label="t('reports.metrics.rejected')"
           :value="metrics.rejectedCount"
           tone="rejected"
-          sub="requisições"
+          :sub="t('reports.metrics.requests')"
           :loading="loading"
         />
         <UiMetricCard
-          label="Taxa de aprovação"
+          :label="t('reports.metrics.approvalRate')"
           :value="metrics.approvalRate / 100"
           :format-options="{ style: 'percent', maximumFractionDigits: 0 }"
-          sub="aprovadas vs revisadas"
+          :sub="t('reports.metrics.approvedVsReviewed')"
           :loading="loading"
         />
       </div>
@@ -205,7 +207,7 @@ onMounted(fetch)
             </div>
           </template>
           <template v-else>
-            <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">Distribuição por status</p>
+            <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">{{ t('reports.charts.statusDist') }}</p>
             <div style="height: 260px; padding: 8px 8px 0;">
               <ClientOnly>
                 <Doughnut :data="donutData" :options="donutOptions" />
@@ -222,7 +224,7 @@ onMounted(fetch)
             </div>
           </template>
           <template v-else>
-            <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">Valor aprovado por moeda (EUR)</p>
+            <p class="text-sm font-medium mb-4" style="color: var(--text-primary);">{{ t('reports.charts.currencyValue') }}</p>
             <div style="height: 260px;">
               <ClientOnly>
                 <Bar :data="barData" :options="barOptions" />
@@ -239,7 +241,7 @@ onMounted(fetch)
           <div
             class="text-sm font-medium"
             style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-          >Detalhamento por moeda</div>
+          >{{ t('reports.tables.byCurrency') }}</div>
 
           <template v-if="loading">
             <table class="w-full" style="border-collapse: collapse;">
@@ -255,12 +257,12 @@ onMounted(fetch)
             </table>
           </template>
           <template v-else>
-            <div v-if="byCurrency.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">Sem dados.</div>
+            <div v-if="byCurrency.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">{{ t('reports.empty') }}</div>
 
             <table v-else class="w-full" style="border-collapse: collapse;">
               <thead>
                 <tr style="border-bottom: 0.5px solid var(--border-subtle);">
-                  <th v-for="h in ['Moeda', 'Aprovadas', 'Rejeitadas', 'Total EUR']" :key="h"
+                  <th v-for="h in [t('reports.tables.currency'), t('reports.tables.approved'), t('reports.tables.rejected'), t('reports.tables.totalEur')]" :key="h"
                     class="text-left font-medium"
                     style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
                   >{{ h }}</th>
@@ -291,7 +293,7 @@ onMounted(fetch)
           <div
             class="text-sm font-medium"
             style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-          >Detalhamento por funcionário</div>
+          >{{ t('reports.tables.byEmployee') }}</div>
 
           <template v-if="loading">
             <table class="w-full" style="border-collapse: collapse;">
@@ -307,12 +309,12 @@ onMounted(fetch)
             </table>
           </template>
           <template v-else>
-            <div v-if="byEmployee.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">Sem dados.</div>
+            <div v-if="byEmployee.length === 0" class="py-8 text-center text-sm" style="color: var(--text-muted);">{{ t('reports.empty') }}</div>
 
             <table v-else class="w-full" style="border-collapse: collapse;">
               <thead>
                 <tr style="border-bottom: 0.5px solid var(--border-subtle);">
-                  <th v-for="h in ['Funcionário', 'Aprovadas', 'Rejeitadas', 'Total EUR']" :key="h"
+                  <th v-for="h in [t('reports.tables.employee'), t('reports.tables.approved'), t('reports.tables.rejected'), t('reports.tables.totalEur')]" :key="h"
                     class="text-left font-medium"
                     style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
                   >{{ h }}</th>

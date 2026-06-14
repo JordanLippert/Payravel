@@ -4,18 +4,20 @@ import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const toast = useToast()
+const { t } = useT()
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const nav = computed(() => [
-  { label: 'Fila de aprovação', to: '/finance' },
-  { label: 'Histórico', to: '/finance/history', active: true },
-  { label: 'Relatórios', to: '/finance/reports' },
+  { label: t('nav.queue'), to: '/finance' },
+  { label: t('nav.history'), to: '/finance/history', active: true },
+  { label: t('nav.reports'), to: '/finance/reports' },
 ])
 
 type FilterValue = 'all' | 'approved' | 'rejected' | 'expired'
@@ -26,6 +28,13 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'rejected', label: 'Rejeitadas' },
   { value: 'expired',  label: 'Expiradas' },
 ]
+
+const filters = computed(() => [
+  { value: 'all' as FilterValue,      label: t('financeHistory.filters.all') },
+  { value: 'approved' as FilterValue, label: t('financeHistory.filters.approved') },
+  { value: 'rejected' as FilterValue, label: t('financeHistory.filters.rejected') },
+  { value: 'expired' as FilterValue,  label: t('financeHistory.filters.expired') },
+])
 
 const slideDirection = ref<'left' | 'right'>('left')
 const requests = ref<PaymentRequest[]>([])
@@ -48,7 +57,7 @@ async function fetch() {
     requests.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar histórico.')
+    toast.error(t('shared.errors.loadHistory'))
   } finally {
     loading.value = false
   }
@@ -87,8 +96,8 @@ onMounted(fetch)
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
       <div class="flex items-end justify-between mb-6">
         <div>
-          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Histórico</h1>
-          <p class="text-sm" style="color: var(--text-tertiary);">Requisições já revisadas ou expiradas.</p>
+          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('financeHistory.title') }}</h1>
+          <p class="text-sm" style="color: var(--text-tertiary);">{{ t('financeHistory.subtitle') }}</p>
         </div>
 
         <!-- Filter pill group -->
@@ -97,7 +106,7 @@ onMounted(fetch)
           style="border: 0.5px solid var(--border-subtle); border-radius: 9px; padding: 3px; background: var(--bg-elevated); gap: 2px;"
         >
           <button
-            v-for="opt in FILTERS"
+            v-for="opt in filters"
             :key="opt.value"
             @click="setFilter(opt.value)"
             class="relative text-sm transition-colors duration-150"
@@ -119,7 +128,7 @@ onMounted(fetch)
           <table class="w-full" style="border-collapse: collapse;">
             <thead>
               <tr style="border-bottom: 0.5px solid var(--border-subtle);">
-                <th v-for="h in ['Funcionário / Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Status', 'Revisado em']" :key="h"
+                <th v-for="h in [t('financeHistory.table.employee'), t('financeHistory.table.localValue'), t('financeHistory.table.currency'), t('financeHistory.table.inEur'), t('financeHistory.table.status'), t('financeHistory.table.reviewedAt')]" :key="h"
                   class="text-left font-medium"
                   style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
                 >{{ h }}</th>
@@ -146,7 +155,7 @@ onMounted(fetch)
         <Transition :name="slideDirection === 'left' ? 'slide-left' : 'slide-right'" mode="out-in">
           <div v-if="!loading" :key="statusFilter">
             <div v-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
-              Nenhuma requisição encontrada.
+              {{ t('financeHistory.empty') }}
             </div>
 
             <div v-else class="overflow-x-auto">
@@ -154,7 +163,7 @@ onMounted(fetch)
                 <thead>
                   <tr style="border-bottom: 0.5px solid var(--border-subtle);">
                     <th
-                      v-for="h in ['Funcionário / Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Status', 'Revisado em']"
+                      v-for="h in [t('financeHistory.table.employee'), t('financeHistory.table.localValue'), t('financeHistory.table.currency'), t('financeHistory.table.inEur'), t('financeHistory.table.status'), t('financeHistory.table.reviewedAt')]"
                       :key="h"
                       class="text-left font-medium"
                       style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"

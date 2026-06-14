@@ -2,17 +2,19 @@
 import { useFinanceController } from '~/composables/useFinanceController'
 import { useAuthStore } from '~/stores/auth'
 import { Clock } from '@lucide/vue'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
 
 const auth = useAuthStore()
+const { t } = useT()
 const { requests, loading, resolving, fading, metrics, resolve, formatEur, formatExpiry, isCritical, CURRENCY_FLAG } = useFinanceController()
 
 const nav = computed(() => [
-  { label: 'Fila de aprovação', to: '/finance', active: true },
-  { label: 'Histórico', to: '/finance/history' },
-  { label: 'Relatórios', to: '/finance/reports' },
+  { label: t('nav.queue'), to: '/finance', active: true },
+  { label: t('nav.history'), to: '/finance/history' },
+  { label: t('nav.reports'), to: '/finance/reports' },
 ])
 </script>
 
@@ -22,38 +24,38 @@ const nav = computed(() => [
     <AppTopbar :nav="nav" :user="{ name: auth.user?.name ?? '', role: auth.user?.role }" />
 
     <main class="px-8 py-8" style="max-width: 1180px; margin: 0 auto;">
-      <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Painel financeiro</h1>
-      <p class="text-sm mb-6" style="color: var(--text-tertiary);">Revise e libere as requisições da equipe.</p>
+      <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('finance.panel.title') }}</h1>
+      <p class="text-sm mb-6" style="color: var(--text-tertiary);">{{ t('finance.panel.subtitle') }}</p>
 
       <!-- KPI cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-7" style="gap: 14px;">
         <UiMetricCard
-          label="Aguardando revisão"
+          :label="t('finance.metrics.awaitingReview')"
           :value="metrics.pending"
-          sub="na sua fila"
+          :sub="t('finance.metrics.inQueue')"
           :accent="true"
           :loading="loading"
         />
         <UiMetricCard
-          label="Total em EUR"
+          :label="t('finance.metrics.totalEur')"
           :value="metrics.total"
           prefix="€ "
           :format-options="{ minimumFractionDigits: 2, maximumFractionDigits: 2 }"
-          sub="valor pendente"
+          :sub="t('finance.metrics.pendingValue')"
           :loading="loading"
         />
         <UiMetricCard
-          label="Aprovados hoje"
+          :label="t('finance.metrics.approvedToday')"
           :value="metrics.approved"
           tone="approved"
-          sub="processados"
+          :sub="t('finance.metrics.processed')"
           :loading="loading"
         />
         <UiMetricCard
-          label="Expiram em 24h"
+          :label="t('finance.metrics.expiringIn24h')"
           :value="metrics.expiringIn24h"
           tone="pending"
-          sub="ação necessária"
+          :sub="t('finance.metrics.actionRequired')"
           :loading="loading"
         />
       </div>
@@ -63,12 +65,12 @@ const nav = computed(() => [
         <div
           class="text-sm font-medium"
           style="padding: 16px 20px; border-bottom: 0.5px solid var(--border-subtle); color: var(--text-primary);"
-        >Fila de aprovação</div>
+        >{{ t('finance.queue.title') }}</div>
 
         <div v-if="loading" class="py-10 text-center text-sm" style="color: var(--text-muted);">Carregando...</div>
 
         <div v-else-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
-          Fila vazia — tudo revisado. ✓
+          {{ t('finance.queue.empty') }}
         </div>
 
         <div v-else class="overflow-x-auto">
@@ -76,7 +78,7 @@ const nav = computed(() => [
             <thead>
               <tr style="border-bottom: 0.5px solid var(--border-subtle);">
                 <th
-                  v-for="h in ['Funcionário / Descrição', 'Valor local', 'Moeda', 'Em EUR', 'Expira', 'Ação']"
+                  v-for="h in [t('finance.table.employee'), t('finance.table.localValue'), t('finance.table.currency'), t('finance.table.inEur'), t('finance.table.expires'), t('finance.table.action')]"
                   :key="h"
                   class="text-left font-medium"
                   style="padding: 10px 16px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted);"
@@ -120,7 +122,7 @@ const nav = computed(() => [
                     <button
                       @click="resolve(req.id, 'approved')"
                       :disabled="resolving.has(req.id)"
-                      title="Aprovar"
+                      :title="t('finance.actions.approve')"
                       class="inline-flex items-center justify-center text-[14px] transition-all duration-[120ms] disabled:opacity-40"
                       style="width: 30px; height: 30px; border-radius: 6px; border: 0.5px solid var(--border-default); color: var(--status-approved-fg); background: transparent; cursor: pointer;"
                       @mouseenter="($event.currentTarget as HTMLElement).style.background = 'var(--status-approved-bg)'; ($event.currentTarget as HTMLElement).style.borderColor = 'var(--status-approved-border)'"
@@ -129,7 +131,7 @@ const nav = computed(() => [
                     <button
                       @click="resolve(req.id, 'rejected')"
                       :disabled="resolving.has(req.id)"
-                      title="Rejeitar"
+                      :title="t('finance.actions.reject')"
                       class="inline-flex items-center justify-center text-[14px] transition-all duration-[120ms] disabled:opacity-40"
                       style="width: 30px; height: 30px; border-radius: 6px; border: 0.5px solid var(--border-default); color: var(--status-rejected-fg); background: transparent; cursor: pointer;"
                       @mouseenter="($event.currentTarget as HTMLElement).style.background = 'var(--status-rejected-bg)'; ($event.currentTarget as HTMLElement).style.borderColor = 'var(--status-rejected-border)'"

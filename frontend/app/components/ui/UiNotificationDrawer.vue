@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { CheckCheck, CheckCircle, XCircle, FileText } from '@lucide/vue'
 import type { AppNotification } from '~/services/notificationsService'
+import { useT } from '~/composables/useT'
 
 defineProps<{
   notifications: AppNotification[]
@@ -14,10 +15,12 @@ const emit = defineEmits<{
   'mark-all-read': []
 }>()
 
+const { t } = useT()
+
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60_000)
-  if (m < 1) return 'agora'
+  if (m < 1) return t('notifications.timeNow')
   if (m < 60) return `${m}m`
   const h = Math.floor(m / 60)
   if (h < 24) return `${h}h`
@@ -63,7 +66,7 @@ const iconColorMap: Record<string, string> = {
             @click="emit('mark-all-read')"
           >
             <CheckCheck :size="13" />
-            Marcar todas lidas
+            {{ t('notifications.bell.markAllRead') }}
           </button>
         </div>
 
@@ -80,7 +83,7 @@ const iconColorMap: Record<string, string> = {
           </template>
 
           <div v-else-if="notifications.length === 0" style="padding: 40px 16px; text-align: center; font-size: 13px; color: var(--text-muted);">
-            Nenhuma notificação
+            {{ t('notifications.bell.empty') }}
           </div>
 
           <template v-else>
@@ -115,7 +118,7 @@ const iconColorMap: Record<string, string> = {
           style="display: block; text-align: center; padding: 14px 16px; font-size: 13px; color: var(--text-primary); text-decoration: none; border-top: 0.5px solid var(--border-subtle); font-weight: 500;"
           @click="emit('close')"
         >
-          Ver todas as notificações →
+          {{ t('notifications.bell.viewAll') }}
         </NuxtLink>
       </div>
     </div>

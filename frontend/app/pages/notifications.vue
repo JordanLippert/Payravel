@@ -3,18 +3,20 @@ import { CheckCheck, CheckCircle, XCircle, FileText } from '@lucide/vue'
 import { notificationsService, type AppNotification, type NotificationsMeta } from '~/services/notificationsService'
 import { useAuthStore } from '~/stores/auth'
 import { useToast } from 'vue-toastification'
+import { useT } from '~/composables/useT'
 
 definePageMeta({ middleware: 'auth' })
 const isMobile = useIsMobile()
 
 const auth = useAuthStore()
 const toast = useToast()
+const { t } = useT()
 
 const nav = computed(() => {
   const isFinance = auth.user?.role === 'finance'
   return [
-    { label: isFinance ? 'Painel' : 'Dashboard', to: isFinance ? '/finance' : '/' },
-    { label: 'Notificações', active: true },
+    { label: isFinance ? t('nav.panel') : t('nav.dashboard'), to: isFinance ? '/finance' : '/' },
+    { label: t('notifications.title'), active: true },
   ]
 })
 
@@ -32,6 +34,12 @@ const FILTERS: { value: FilterValue; label: string }[] = [
   { value: 'read',   label: 'Lidas' },
 ]
 
+const filters = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: 'all',    label: t('notifications.filters.all') },
+  { value: 'unread', label: t('notifications.filters.unread') },
+  { value: 'read',   label: t('notifications.filters.read') },
+])
+
 async function fetchNotifications() {
   loading.value = true
   try {
@@ -39,7 +47,7 @@ async function fetchNotifications() {
     notifications.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar notificações.')
+    toast.error(t('shared.errors.loadNotifications'))
   } finally {
     loading.value = false
   }
@@ -75,7 +83,7 @@ async function markAllRead() {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60_000)
-  if (m < 1) return 'agora'
+  if (m < 1) return t('notifications.timeNow')
   if (m < 60) return `${m}m`
   const h = Math.floor(m / 60)
   if (h < 24) return `${h}h`
@@ -106,8 +114,8 @@ onMounted(fetchNotifications)
     <main class="px-8 py-8" style="max-width: 860px; margin: 0 auto;">
       <div class="flex items-center justify-between mb-6">
         <div>
-          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">Notificações</h1>
-          <p class="text-sm" style="color: var(--text-tertiary);">Atualizações das suas requisições de pagamento.</p>
+          <h1 class="font-medium mb-1" style="font-size: 22px; color: var(--text-primary);">{{ t('notifications.title') }}</h1>
+          <p class="text-sm" style="color: var(--text-tertiary);">{{ t('notifications.subtitle') }}</p>
         </div>
         <button
           type="button"
@@ -115,14 +123,14 @@ onMounted(fetchNotifications)
           @click="markAllRead"
         >
           <CheckCheck :size="14" />
-          Marcar todas como lidas
+          {{ t('notifications.markAllRead') }}
         </button>
       </div>
 
       <!-- Filter tabs -->
       <div class="flex" style="gap: 4px; margin-bottom: 20px; border-bottom: 0.5px solid var(--border-subtle); padding-bottom: 0;">
         <button
-          v-for="f in FILTERS"
+          v-for="f in filters"
           :key="f.value"
           type="button"
           style="padding: 8px 14px; background: none; border: none; cursor: pointer; font-size: 13.5px; font-family: var(--font-sans); transition: color 120ms; position: relative; bottom: -0.5px;"
@@ -151,7 +159,7 @@ onMounted(fetchNotifications)
         </template>
 
         <div v-else-if="notifications.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
-          Nenhuma notificação neste filtro.
+          {{ t('notifications.empty') }}
         </div>
 
         <table v-else class="w-full" style="border-collapse: collapse;">
