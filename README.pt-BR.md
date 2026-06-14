@@ -1,13 +1,18 @@
-# Payravel
+<p align="center">
+  <img src="frontend/public/favicon.svg" width="72" height="72" alt="Payravel" />
+</p>
+
+<h1 align="center">Payravel</h1>
+<p align="center">Plataforma de reembolso de despesas corporativas — multi-moeda, câmbio em tempo real, aprovações por papel.</p>
+
+---
 
 > 🇺🇸 [Read in English](README.md)
 
-Sistema de gerenciamento de solicitações de pagamento multi-moeda.
-
 ## Stack
 
-- **Backend:** Laravel 12, PHP 8.4, PostgreSQL, Laravel Passport
-- **Frontend:** Nuxt 3, Tailwind CSS *(em breve)*
+- **Backend:** Laravel 12, PHP 8.2+, Laravel Passport
+- **Frontend:** Nuxt 4, Vue 3, Tailwind CSS 4, TypeScript, Pinia
 - **Infra:** Docker + docker-compose
 
 ---
@@ -79,11 +84,21 @@ php artisan test
 | POST | /api/auth/logout | Sim | — |
 | POST | /api/auth/forgot-password | Não | — |
 | POST | /api/auth/reset-password | Não | — |
+| GET | /api/user | Sim | — |
+| PUT | /api/user | Sim | — |
 | GET | /api/exchange-rates/{currency} | Sim | — |
 | GET | /api/payment-requests | Sim | qualquer |
 | POST | /api/payment-requests | Sim | qualquer |
 | GET | /api/payment-requests/{id} | Sim | qualquer |
 | PATCH | /api/payment-requests/{id}/status | Sim | financeiro |
+| GET | /api/metrics/total | Sim | qualquer |
+| GET | /api/metrics/pending | Sim | financeiro |
+| GET | /api/metrics/approved | Sim | financeiro |
+| GET | /api/metrics/rejected | Sim | financeiro |
+| GET | /api/finance/reports | Sim | financeiro |
+| GET | /api/notifications | Sim | — |
+| PATCH | /api/notifications/{id}/read | Sim | — |
+| GET | /api/notifications/unread-count | Sim | — |
 
 Documentação interativa completa: **http://localhost:8000/docs**
 
@@ -92,7 +107,7 @@ Documentação interativa completa: **http://localhost:8000/docs**
 ## Decisões de Design
 
 - **UUIDs** em todas as chaves primárias — evita ataques de enumeração
-- **TIMESTAMPTZ** em todos os timestamps — tratamento correto de fusos horários para equipe internacional
 - **Imutabilidade da taxa de câmbio** — taxa, fonte e timestamp são armazenados na criação e nunca alterados
-- **Expiração automática em 48h** — solicitações pendentes expiram via job agendado a cada hora
+- **Expiração automática em 48h** — solicitações pendentes expiram via job agendado a cada hora (`ExpirePaymentRequests`)
 - **Controle de acesso por papel** — funcionários veem apenas suas próprias solicitações; financeiro vê todas e pode aprovar/rejeitar
+- **Moeda via payload** — a moeda é extraída do corpo da requisição, não da moeda padrão do usuário

@@ -1,75 +1,75 @@
-# Nuxt Minimal Starter
+<p align="center">
+  <img src="public/favicon.svg" width="64" height="64" alt="Payravel" />
+</p>
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+<h1 align="center">Payravel — Frontend</h1>
+<p align="center">Nuxt 4 SPA for the Payravel expense reimbursement platform.</p>
+
+---
+
+## Stack
+
+| | |
+|---|---|
+| Framework | Nuxt 4 / Vue 3 |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4 |
+| State | Pinia |
+| HTTP | Axios |
+| Charts | Chart.js + vue-chartjs |
+| Icons | Lucide Vue |
+| Flags | flag-icons |
+| Testing | Vitest + Playwright |
 
 ## Setup
 
-Make sure to install dependencies:
-
 ```bash
-# npm
-npm install
-
-# pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## Dev server
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
 pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+# http://localhost:3000
 ```
 
-## Production
-
-Build the application for production:
+## Build
 
 ```bash
-# npm
-npm run build
-
-# pnpm
 pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
+pnpm preview
 ```
 
-Locally preview production build:
+## Tests
 
 ```bash
-# npm
-npm run preview
+# Unit
+pnpm vitest
 
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+# E2E
+pnpm playwright test
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+## Structure
+
+```
+app/
+├── assets/css/       # Global styles + design tokens
+├── components/
+│   ├── brand/        # AppLogo
+│   ├── layout/       # AppTopbar
+│   ├── mobile/       # Mobile-specific views
+│   └── ui/           # Reusable UI components
+├── composables/      # Feature controllers + shared logic
+├── layouts/          # auth, default
+├── pages/            # File-based routing
+├── services/         # API layer (httpClient + per-resource)
+└── stores/           # Pinia stores (auth, locale)
+```
+
+## Environment
+
+```env
+NUXT_PUBLIC_API_BASE=http://localhost:8000
+```

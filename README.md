@@ -1,13 +1,18 @@
-# Payravel
+<p align="center">
+  <img src="frontend/public/favicon.svg" width="72" height="72" alt="Payravel" />
+</p>
+
+<h1 align="center">Payravel</h1>
+<p align="center">Corporate expense reimbursement — multi-currency, real-time exchange rates, role-based approvals.</p>
+
+---
 
 > 🇧🇷 [Leia em Português](README.pt-BR.md)
 
-Multi-currency payment request management system.
-
 ## Stack
 
-- **Backend:** Laravel 12, PHP 8.4, PostgreSQL, Laravel Passport
-- **Frontend:** Nuxt 3, Tailwind CSS *(coming soon)*
+- **Backend:** Laravel 12, PHP 8.2+, Laravel Passport
+- **Frontend:** Nuxt 4, Vue 3, Tailwind CSS 4, TypeScript, Pinia
 - **Infra:** Docker + docker-compose
 
 ---
