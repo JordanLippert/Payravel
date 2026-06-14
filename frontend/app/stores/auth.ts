@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { authService } from '~/services/authService'
 
 interface User {
@@ -16,19 +16,9 @@ export const useAuthStore = defineStore('auth', () => {
     maxAge: 60 * 60 * 24 * 7,
   })
 
-  const userCookie = useCookie<string>('pv_user', {
-    default: () => '',
+  const user = useCookie<User | null>('pv_user', {
+    default: () => null,
     maxAge: 60 * 60 * 24 * 7,
-  })
-
-  const user = computed<User | null>({
-    get: () => {
-      if (!userCookie.value) return null
-      try { return JSON.parse(userCookie.value) as User } catch { return null }
-    },
-    set: (v: User | null) => {
-      userCookie.value = v ? JSON.stringify(v) : ''
-    },
   })
 
   const isAuthenticated = computed(() => !!token.value)

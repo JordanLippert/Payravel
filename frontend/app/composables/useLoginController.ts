@@ -15,7 +15,6 @@ const registerSchema = z.object({
 
 export function useLoginController() {
   const auth = useAuthStore()
-  const router = useRouter()
   const toast = useToast()
 
   const mode = ref<'login' | 'register'>('login')
@@ -56,7 +55,7 @@ export function useLoginController() {
         }
         await auth.register(name.value, email.value, password.value)
       }
-      await router.push('/')
+      await navigateTo('/')
     } catch (err: unknown) {
       const message = (err as { response?: { data?: { message?: string } } })?.response?.data?.message
       toast.error(message || 'Erro ao autenticar. Verifique suas credenciais.')
