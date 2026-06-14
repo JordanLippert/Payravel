@@ -4,19 +4,21 @@ import { Shield } from '@lucide/vue'
 import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { useAuthStore } from '~/stores/auth'
 import { useToast } from 'vue-toastification'
+import { useT } from '~/composables/useT'
 
 const auth = useAuthStore()
 const router = useRouter()
 const toast = useToast()
+const { t } = useT()
 
 type FilterValue = 'all' | 'approved' | 'rejected' | 'expired'
 
-const filters: { value: FilterValue; label: string }[] = [
-  { value: 'all',      label: 'Todos' },
-  { value: 'approved', label: 'Aprovado' },
-  { value: 'rejected', label: 'Rejeitado' },
-  { value: 'expired',  label: 'Expirado' },
-]
+const filters = computed(() => [
+  { value: 'all' as FilterValue,      label: t('financeHistory.filtersMobile.all') },
+  { value: 'approved' as FilterValue, label: t('financeHistory.filtersMobile.approved') },
+  { value: 'rejected' as FilterValue, label: t('financeHistory.filtersMobile.rejected') },
+  { value: 'expired' as FilterValue,  label: t('financeHistory.filtersMobile.expired') },
+])
 
 const requests = ref<PaymentRequest[]>([])
 const loading = ref(false)
@@ -38,7 +40,7 @@ async function fetchRequests() {
     requests.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar histórico.')
+    toast.error(t('shared.errors.loadHistory'))
   } finally {
     loading.value = false
   }
@@ -64,14 +66,14 @@ onMounted(fetchRequests)
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <div style="font-size: 11px; color: var(--text-muted);">Financeiro</div>
-        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Histórico</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ t('financeHistory.headerMobile') }}</div>
+        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">{{ t('financeHistory.title') }}</div>
       </div>
       <span style="display: inline-flex; align-items: center; gap: 6px; background: var(--red-500); border-radius: 999px; padding: 4px 11px 4px 4px;">
         <span style="width: 22px; height: 22px; border-radius: 999px; background: rgba(0,0,0,.22); display: flex; align-items: center; justify-content: center;">
           <Shield :size="12" style="color: #fff;" />
         </span>
-        <span style="font-size: 11px; font-weight: 500; color: #fff;">Finance</span>
+        <span style="font-size: 11px; font-weight: 500; color: #fff;">{{ t('finance.panel.roleLabel') }}</span>
       </span>
     </div>
 
@@ -105,7 +107,7 @@ onMounted(fetchRequests)
         </div>
       </template>
       <div v-else-if="requests.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0;">
-        Nenhuma requisição encontrada.
+        {{ t('financeHistory.empty') }}
       </div>
       <MobileRequestCard
         v-else

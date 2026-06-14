@@ -2,6 +2,7 @@
 <script setup lang="ts">
 import { ChevronLeft, ChevronRight, Send, RefreshCw, Zap } from '@lucide/vue'
 import { useNewRequestController } from '~/composables/useNewRequestController'
+import { useT } from '~/composables/useT'
 
 const router = useRouter()
 const {
@@ -10,8 +11,13 @@ const {
   amountEur, errors, CURRENCIES,
   advance, confirm, retryFetch, submit,
 } = useNewRequestController()
+const { t } = useT()
 
-const stepTitles = ['Detalhes', 'Câmbio', 'Revisão']
+const stepTitles = computed(() => [
+  t('requests.new.steps.details'),
+  t('requests.new.steps.exchange'),
+  t('requests.new.steps.review'),
+])
 
 const selectedCurrency = computed(() => CURRENCIES.find(c => c.value === currency.value) ?? CURRENCIES[0])
 
@@ -64,12 +70,12 @@ const fmtEUR = (n: number) =>
       <!-- Step 1: Details -->
       <template v-if="step === 1">
         <div>
-          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">Detalhes</div>
-          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">O que você precisa reembolsar?</div>
+          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">{{ t('requests.new.steps.details') }}</div>
+          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">{{ t('requests.new.steps.step1Sub') }}</div>
         </div>
-        <UiInput label="Descrição" v-model="description" placeholder="Ex: Licença Figma" :hint="errors.description" />
+        <UiInput :label="t('requests.new.form.description')" v-model="description" :placeholder="t('requests.new.form.descriptionPlaceholder')" :hint="errors.description" />
         <div>
-          <div style="font-size: 11.5px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">Valor</div>
+          <div style="font-size: 11.5px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">{{ t('requests.new.form.value') }}</div>
           <div style="display: flex; align-items: center; gap: 10px; height: 54px; padding: 0 14px; background: var(--bg-input); border: 0.5px solid var(--border-default); border-radius: 12px;">
             <span style="font-family: var(--font-mono); font-size: 16px; color: var(--text-muted);">{{ currency }}</span>
             <input
@@ -84,7 +90,7 @@ const fmtEUR = (n: number) =>
         </div>
         <!-- Currency picker -->
         <div>
-          <div style="font-size: 11.5px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">Moeda</div>
+          <div style="font-size: 11.5px; font-weight: 500; color: var(--text-tertiary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em;">{{ t('requests.new.form.currency') }}</div>
           <button
             type="button"
             style="width: 100%; display: flex; align-items: center; gap: 10px; height: 46px; padding: 0 13px; background: var(--bg-input); border: 0.5px solid var(--border-default); border-radius: 12px; cursor: pointer; font-family: var(--font-sans);"
@@ -116,16 +122,16 @@ const fmtEUR = (n: number) =>
       <!-- Step 2: Exchange rate -->
       <template v-if="step === 2">
         <div>
-          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">Câmbio</div>
-          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">Taxa buscada automaticamente.</div>
+          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">{{ t('requests.new.steps.exchange') }}</div>
+          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">{{ t('requests.new.steps.step2Sub') }}</div>
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 14px;">
           <div class="flex items-center justify-between">
-            <span style="font-size: 12.5px; color: var(--text-tertiary);">Taxa de câmbio</span>
+            <span style="font-size: 12.5px; color: var(--text-tertiary);">{{ t('requests.new.exchange.rate') }}</span>
             <span
               style="display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; background: var(--status-approved-bg); color: var(--status-approved-fg); border: 0.5px solid var(--status-approved-border); border-radius: 999px; padding: 3px 8px;"
             >
-              <Zap :size="11" style="color: var(--status-approved-fg);" :fill="'var(--status-approved-fg)'" />ao vivo
+              <Zap :size="11" style="color: var(--status-approved-fg);" :fill="'var(--status-approved-fg)'" />{{ t('requests.new.exchange.live') }}
             </span>
           </div>
           <div v-if="rateLoading" style="margin-top: 4px;"><UiSkeleton width="180px" height="32px" rounded="6px" /></div>
@@ -135,41 +141,41 @@ const fmtEUR = (n: number) =>
           <div style="height: 0.5px; background: var(--border-subtle);" />
           <div class="flex items-center justify-between">
             <div>
-              <div style="font-size: 11.5px; color: var(--text-muted);">Você envia</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">{{ t('requests.new.exchange.youSend') }}</div>
               <div style="font-family: var(--font-mono); font-size: 15px; color: var(--text-secondary); margin-top: 2px;">{{ currency }} {{ amountDisplay }}</div>
             </div>
             <ChevronRight :size="16" style="color: var(--text-muted);" />
             <div class="text-right">
-              <div style="font-size: 11.5px; color: var(--text-muted);">Equivale a</div>
+              <div style="font-size: 11.5px; color: var(--text-muted);">{{ t('requests.new.exchange.equivalentTo') }}</div>
               <div style="font-family: var(--font-mono); font-size: 17px; font-weight: 500; color: var(--red-500); margin-top: 2px;">€ {{ amountEur ? fmtEUR(amountEur) : '0,00' }}</div>
             </div>
           </div>
         </div>
         <div v-if="fetchFailed" style="display: flex; align-items: center; gap: 7px; font-size: 12px; color: var(--status-rejected-fg);">
-          Taxa indisponível.
+          {{ t('requests.new.exchange.unavailable') }}
           <button type="button" style="background: none; border: none; cursor: pointer; color: var(--text-secondary); text-decoration: underline; font-size: 12px;" @click="retryFetch">
-            <RefreshCw :size="12" class="inline mr-1" />Tentar novamente
+            <RefreshCw :size="12" class="inline mr-1" />{{ t('requests.new.exchange.retry') }}
           </button>
         </div>
         <div v-else style="display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--text-muted);">
-          <RefreshCw :size="13" />Fonte: {{ rateSource }} · ao vivo
+          <RefreshCw :size="13" />{{ t('requests.new.exchange.source', { source: rateSource ?? '' }) }}
         </div>
       </template>
 
       <!-- Step 3: Review -->
       <template v-if="step === 3">
         <div>
-          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">Revisão</div>
-          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">Confirme antes de enviar.</div>
+          <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">{{ t('requests.new.steps.review') }}</div>
+          <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 2px;">{{ t('requests.new.steps.step3Sub') }}</div>
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; padding: 18px; text-align: center;">
-          <div style="font-size: 12px; color: var(--text-muted);">Equivalente em EUR</div>
+          <div style="font-size: 12px; color: var(--text-muted);">{{ t('requests.new.exchange.inEurEquivalent') }}</div>
           <div style="font-family: var(--font-mono); font-size: 38px; font-weight: 500; letter-spacing: -0.02em; color: var(--text-primary); margin-top: 6px; font-variant-numeric: tabular-nums;">€ {{ amountEur ? fmtEUR(amountEur) : '0,00' }}</div>
           <div style="font-size: 12.5px; color: var(--text-tertiary); margin-top: 4px;">{{ currency }} {{ amountDisplay }} · taxa {{ rate?.toFixed(4) }}</div>
         </div>
         <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 16px; overflow: hidden;">
           <div
-            v-for="([k, v], i) in [['Descrição', description], ['Moeda', currency], ['Valor local', `${currency} ${amountDisplay}`], ['Fonte da taxa', rateSource]]"
+            v-for="([k, v], i) in [[t('requests.new.review.description'), description], [t('requests.new.review.currency'), currency], [t('requests.new.review.localValue'), `${currency} ${amountDisplay}`], [t('requests.new.review.rateSource'), rateSource]]"
             :key="k"
             style="display: flex; justify-content: space-between; gap: 12px; padding: 12px 15px;"
             :style="{ borderBottom: i < 3 ? '0.5px solid var(--border-subtle)' : 'none' }"
@@ -190,11 +196,11 @@ const fmtEUR = (n: number) =>
         style="color: var(--text-muted);"
       >
         <span class="pulse-dot" />
-        Buscando taxa de câmbio...
+        {{ t('requests.new.exchange.fetchingRate') }}
       </div>
       <div style="display: flex; gap: 9px;">
         <UiButton variant="ghost" size="lg" @click="handleBack">
-          {{ step === 1 ? 'Cancelar' : 'Voltar' }}
+          {{ step === 1 ? t('requests.new.buttons.cancel') : t('requests.new.buttons.back') }}
         </UiButton>
         <UiButton
           variant="primary"
@@ -204,10 +210,10 @@ const fmtEUR = (n: number) =>
           @click="step === 3 ? submit() : step === 2 ? confirm() : advance()"
         >
           <template v-if="step === 3">
-            Enviar <Send :size="15" class="ml-1.5" />
+            {{ t('requests.new.buttons.send') }} <Send :size="15" class="ml-1.5" />
           </template>
           <template v-else>
-            Continuar <ChevronRight :size="16" class="ml-1" />
+            {{ t('requests.new.buttons.continue') }} <ChevronRight :size="16" class="ml-1" />
           </template>
         </UiButton>
       </div>

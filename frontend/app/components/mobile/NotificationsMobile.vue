@@ -3,9 +3,11 @@
 import { CheckCheck, CheckCircle, XCircle, FileText } from '@lucide/vue'
 import { notificationsService, type AppNotification, type NotificationsMeta } from '~/services/notificationsService'
 import { useToast } from 'vue-toastification'
+import { useT } from '~/composables/useT'
 
 const toast = useToast()
 const router = useRouter()
+const { t } = useT()
 
 type FilterValue = 'all' | 'unread' | 'read'
 
@@ -15,11 +17,11 @@ const meta = ref<NotificationsMeta>({ current_page: 1, last_page: 1, per_page: 1
 const notifications = ref<AppNotification[]>([])
 const loading = ref(true)
 
-const filters: { value: FilterValue; label: string }[] = [
-  { value: 'all',    label: 'Todas' },
-  { value: 'unread', label: 'Não lidas' },
-  { value: 'read',   label: 'Lidas' },
-]
+const filters = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: 'all',    label: t('notifications.filters.all') },
+  { value: 'unread', label: t('notifications.filters.unread') },
+  { value: 'read',   label: t('notifications.filters.read') },
+])
 
 async function fetchNotifications() {
   loading.value = true
@@ -28,7 +30,7 @@ async function fetchNotifications() {
     notifications.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar notificações.')
+    toast.error(t('shared.errors.loadNotifications'))
   } finally {
     loading.value = false
   }
@@ -64,7 +66,7 @@ async function markAllRead() {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime()
   const m = Math.floor(diff / 60_000)
-  if (m < 1) return 'agora'
+  if (m < 1) return t('notifications.timeNow')
   if (m < 60) return `${m}m`
   const h = Math.floor(m / 60)
   if (h < 24) return `${h}h`
@@ -93,7 +95,7 @@ onMounted(fetchNotifications)
     <div class="flex items-center justify-between">
       <div>
         <div style="font-size: 11px; color: var(--text-muted);">Conta</div>
-        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Notificações</div>
+        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">{{ t('notifications.title') }}</div>
       </div>
       <button
         type="button"
@@ -101,7 +103,7 @@ onMounted(fetchNotifications)
         @click="markAllRead"
       >
         <CheckCheck :size="14" />
-        Marcar todas lidas
+        {{ t('notifications.bell.markAllRead') }}
       </button>
     </div>
 
@@ -134,7 +136,7 @@ onMounted(fetchNotifications)
       </template>
 
       <div v-else-if="notifications.length === 0" style="padding: 40px 16px; text-align: center; font-size: 13px; color: var(--text-muted);">
-        Nenhuma notificação neste filtro.
+        {{ t('notifications.empty') }}
       </div>
 
       <template v-else>

@@ -2,11 +2,14 @@
 <script setup lang="ts">
 import type { PaymentRequest } from '~/services/paymentRequestsService'
 import { CURRENCIES } from '~/config/constants'
+import { useT } from '~/composables/useT'
 
 const props = defineProps<{
   request: PaymentRequest
   showEmployee?: boolean
 }>()
+
+const { t } = useT()
 
 const emit = defineEmits<{ click: [] }>()
 
@@ -68,13 +71,13 @@ const metaLine = computed(() => {
     <!-- amounts -->
     <div class="flex items-end justify-between">
       <div>
-        <div style="font-size: 11px; color: var(--text-muted);">{{ request.currency }} · valor local</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ request.currency }} · {{ t('shared.card.localValue') }}</div>
         <div style="font-family: var(--font-mono); font-size: 13px; color: var(--text-secondary); font-variant-numeric: tabular-nums; margin-top: 2px;">
           {{ localFormatted }}
         </div>
       </div>
       <div class="text-right">
-        <div style="font-size: 11px; color: var(--text-muted);">em EUR</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ t('shared.card.inEur') }}</div>
         <div style="font-family: var(--font-mono); font-size: 16px; font-weight: 500; color: var(--text-primary); font-variant-numeric: tabular-nums; margin-top: 2px;">
           € {{ eurFormatted }}
         </div>

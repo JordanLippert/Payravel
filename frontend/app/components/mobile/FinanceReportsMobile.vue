@@ -5,8 +5,10 @@ import { paymentRequestsService, type ReportsSummary } from '~/services/paymentR
 import { useToast } from 'vue-toastification'
 import { formatEur } from '~/utils/formatCurrency'
 import { CURRENCIES } from '~/config/constants'
+import { useT } from '~/composables/useT'
 
 const toast = useToast()
+const { t } = useT()
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const summary = ref<ReportsSummary | null>(null)
@@ -37,7 +39,7 @@ async function fetchReports() {
   try {
     summary.value = await paymentRequestsService.reports()
   } catch {
-    toast.error('Erro ao carregar relatórios.')
+    toast.error(t('shared.errors.loadReports'))
   } finally {
     loading.value = false
   }
@@ -52,8 +54,8 @@ onMounted(fetchReports)
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <div style="font-size: 11px; color: var(--text-muted);">Financeiro</div>
-        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Relatórios</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ t('reports.headerMobile') }}</div>
+        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">{{ t('reports.title') }}</div>
       </div>
     </div>
 
@@ -61,10 +63,10 @@ onMounted(fetchReports)
     <div class="grid grid-cols-2" style="gap: 9px;">
       <div
         v-for="({ label, numericValue, prefix, formatOptions, tone }) in [
-          { label: 'Total aprovado',  numericValue: metrics.totalEur,                              prefix: '€ ', formatOptions: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, tone: 'var(--status-approved-fg)' },
-          { label: 'Requisições',     numericValue: metrics.approvedCount + metrics.rejectedCount,  prefix: undefined, formatOptions: undefined,                                          tone: 'var(--text-primary)' },
-          { label: 'Total rejeitado', numericValue: metrics.rejectedCount,                          prefix: undefined, formatOptions: undefined,                                          tone: 'var(--status-rejected-fg)' },
-          { label: 'Taxa aprovação',  numericValue: metrics.approvalRate / 100,                     prefix: undefined, formatOptions: { style: 'percent', maximumFractionDigits: 0 },     tone: 'var(--text-primary)' },
+          { label: t('reports.metrics.totalApproved'),  numericValue: metrics.totalEur,                              prefix: '€ ', formatOptions: { minimumFractionDigits: 2, maximumFractionDigits: 2 }, tone: 'var(--status-approved-fg)' },
+          { label: t('reports.metrics.requests'),     numericValue: metrics.approvedCount + metrics.rejectedCount,  prefix: undefined, formatOptions: undefined,                                          tone: 'var(--text-primary)' },
+          { label: t('reports.metrics.rejected'), numericValue: metrics.rejectedCount,                          prefix: undefined, formatOptions: undefined,                                          tone: 'var(--status-rejected-fg)' },
+          { label: t('reports.metrics.approvalRate'),  numericValue: metrics.approvalRate / 100,                     prefix: undefined, formatOptions: { style: 'percent', maximumFractionDigits: 0 },     tone: 'var(--text-primary)' },
         ]"
         :key="label"
         style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 13px; padding: 13px 14px;"
@@ -92,7 +94,7 @@ onMounted(fetchReports)
 
     <!-- Currencies -->
     <div>
-      <div style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">Moedas mais usadas</div>
+      <div style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">{{ t('reports.mostUsedCurrencies') }}</div>
       <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 14px; overflow: hidden;">
         <template v-if="loading">
           <div v-for="i in 3" :key="i" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 0.5px solid var(--border-subtle);">
@@ -123,7 +125,7 @@ onMounted(fetchReports)
 
     <!-- Top employees -->
     <div>
-      <div style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">Top solicitantes</div>
+      <div style="font-size: 13px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">{{ t('reports.topRequesters') }}</div>
       <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 14px; overflow: hidden;">
         <template v-if="loading">
           <div v-for="i in 3" :key="i" style="display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-bottom: 0.5px solid var(--border-subtle);">

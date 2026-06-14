@@ -2,8 +2,10 @@
 <script setup lang="ts">
 import { Check } from '@lucide/vue'
 import { useForgotPasswordController } from '~/composables/useForgotPasswordController'
+import { useT } from '~/composables/useT'
 
 const { loading, sent, email, errors, submit } = useForgotPasswordController()
+const { t } = useT()
 </script>
 
 <template>
@@ -13,10 +15,10 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
       <AppLogo :size="40" color="#fff" knockout="#CC0000" wordmark-color="#fff" />
       <div>
         <h1 style="font-size: 28px; font-weight: 500; line-height: 1.2; letter-spacing: -0.02em; margin: 0;">
-          Recuperar<br>acesso
+          {{ t('auth.forgot.title') }}
         </h1>
         <p style="font-size: 13.5px; color: rgba(255,255,255,0.78); margin-top: 10px; line-height: 1.6;">
-          Informe seu e-mail e enviaremos<br>um link de redefinição.
+          {{ t('auth.forgot.subtitle') }}
         </p>
       </div>
     </div>
@@ -37,14 +39,14 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
       <template v-if="!sent">
         <form class="flex flex-col" style="gap: 13px;" @submit.prevent="submit">
           <UiInput
-            label="E-mail"
+            :label="t('auth.forgot.emailLabel')"
             type="email"
             v-model="email"
             placeholder="voce@empresa.com"
             :hint="errors.email"
           />
           <UiButton variant="primary" size="lg" type="submit" :loading="loading" class="w-full mt-1">
-            Enviar link
+            {{ t('auth.forgot.submit') }}
           </UiButton>
         </form>
       </template>
@@ -62,9 +64,9 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
         >
           <Check :size="16" style="color: var(--status-approved-fg); flex: none; margin-top: 1px;" :stroke-width="2.4" />
           <div>
-            <div style="font-size: 13px; color: var(--status-approved-fg); font-weight: 500;">Link enviado</div>
+            <div style="font-size: 13px; color: var(--status-approved-fg); font-weight: 500;">{{ t('auth.forgot.successTitle') }}</div>
             <div style="font-size: 12px; color: var(--text-muted); margin-top: 3px;">
-              Verifique sua caixa de entrada para <span style="color: var(--text-secondary);">{{ email }}</span>.
+              {{ t('auth.forgot.successMessage', { email: email }) }}
             </div>
           </div>
         </div>
@@ -72,7 +74,7 @@ const { loading, sent, email, errors, submit } = useForgotPasswordController()
 
       <div style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin-top: auto;">
         <NuxtLink to="/login" style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);">
-          ← Voltar para login
+          {{ t('auth.forgot.backToLogin') }}
         </NuxtLink>
       </div>
     </div>

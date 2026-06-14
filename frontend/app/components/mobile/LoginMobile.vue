@@ -1,8 +1,12 @@
 <!-- app/components/mobile/LoginMobile.vue -->
 <script setup lang="ts">
 import { useLoginController } from '~/composables/useLoginController'
+import { useT } from '~/composables/useT'
 
 const { mode, loading, name, email, password, errors, toggleMode, submit } = useLoginController()
+const { t } = useT()
+
+const tabs = computed(() => [['login', t('auth.login.submit')], ['register', t('auth.register.submit')]] as const)
 </script>
 
 <template>
@@ -12,10 +16,10 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
       <AppLogo :size="40" color="#fff" knockout="#CC0000" wordmark-color="#fff" />
       <div>
         <h1 style="font-size: 30px; font-weight: 500; line-height: 1.15; letter-spacing: -0.02em; margin: 0;">
-          Pagamentos<br>multi-moeda,<br>sem fronteiras.
+          {{ t('auth.login.heroTitle') }}
         </h1>
         <p style="font-size: 14px; line-height: 1.55; color: rgba(255,255,255,0.8); margin-top: 12px; max-width: 280px;">
-          Solicite, converta e acompanhe reembolsos — câmbio ao vivo, tudo em EUR.
+          {{ t('auth.register.heroSub') }}
         </p>
       </div>
     </div>
@@ -36,7 +40,7 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
       <!-- Segment control -->
       <div style="display: flex; gap: 4px; background: var(--bg-input); border-radius: 11px; padding: 3px;">
         <button
-          v-for="[id, lbl] in [['login','Entrar'],['register','Registrar']]"
+          v-for="[id, lbl] in tabs"
           :key="id"
           type="button"
           style="flex: 1; padding: 9px 0; border-radius: 8px; border: none; cursor: pointer; font-family: var(--font-sans); font-size: 13.5px; font-weight: 500; transition: background 120ms, color 120ms;"
@@ -52,20 +56,20 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
       <form class="flex flex-col" style="gap: 13px;" @submit.prevent="submit">
         <UiInput
           v-if="mode === 'register'"
-          label="Nome completo"
+          :label="t('auth.register.nameLabel')"
           v-model="name"
           placeholder="Marina Alves"
           :hint="errors.name"
         />
         <UiInput
-          label="E-mail"
+          :label="t('auth.login.emailLabel')"
           type="email"
           v-model="email"
           placeholder="voce@empresa.com"
           :hint="errors.email"
         />
         <UiInput
-          label="Senha"
+          :label="t('auth.login.passwordLabel')"
           type="password"
           v-model="password"
           placeholder="••••••••"
@@ -73,21 +77,21 @@ const { mode, loading, name, email, password, errors, toggleMode, submit } = use
         />
 
         <UiButton variant="primary" size="lg" type="submit" :loading="loading" class="w-full mt-1">
-          {{ mode === 'login' ? 'Entrar' : 'Criar conta' }}
+          {{ mode === 'login' ? t('auth.login.submit') : t('auth.login.register') }}
         </UiButton>
       </form>
 
       <div style="font-size: 12.5px; color: var(--text-muted); text-align: center; margin-top: auto;">
         <template v-if="mode === 'login'">
-          Esqueceu a senha?&nbsp;
+          {{ t('auth.login.forgotPassword') }}&nbsp;
           <NuxtLink to="/forgot-password" style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong);">
-            Recuperar acesso
+            {{ t('auth.forgot.title') }}
           </NuxtLink>
         </template>
         <template v-else>
-          Já tem conta?&nbsp;
+          {{ t('auth.register.hasAccount') }}&nbsp;
           <span style="color: var(--text-secondary); border-bottom: 0.5px solid var(--border-strong); cursor: pointer;" @click="toggleMode">
-            Entrar
+            {{ t('auth.register.login') }}
           </span>
         </template>
       </div>

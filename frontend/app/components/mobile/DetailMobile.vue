@@ -2,42 +2,44 @@
 <script setup lang="ts">
 import { ChevronLeft } from '@lucide/vue'
 import { useRequestDetailController } from '~/composables/useRequestDetailController'
+import { useT } from '~/composables/useT'
 import { CURRENCIES } from '~/config/constants'
 
 const router = useRouter()
 const { request, loading, timeline, formatEur, formatDate } = useRequestDetailController()
+const { t } = useT()
 
 const CURRENCY_FLAG = Object.fromEntries(CURRENCIES.map(c => [c.value, c.flag]))
 
 const flagCode = computed(() => request.value ? (CURRENCY_FLAG[request.value.currency] ?? '') : '')
 
-const timelineItems = computed(() => timeline.value.map(t => ({
-  ...t,
-  dotColor: t.rejected
+const timelineItems = computed(() => timeline.value.map(item => ({
+  ...item,
+  dotColor: item.rejected
     ? 'var(--status-rejected-fg)'
-    : t.expired
+    : item.expired
     ? 'var(--text-muted)'
-    : t.current
+    : item.current
     ? 'var(--status-pending-fg)'
-    : t.done
+    : item.done
     ? 'var(--status-approved-fg)'
     : 'transparent',
-  borderColor: t.rejected
+  borderColor: item.rejected
     ? 'var(--status-rejected-fg)'
-    : t.expired
+    : item.expired
     ? 'var(--text-muted)'
-    : t.current
+    : item.current
     ? 'var(--status-pending-fg)'
-    : t.done
+    : item.done
     ? 'var(--status-approved-fg)'
     : 'var(--border-default)',
-  dotShadow: t.rejected
+  dotShadow: item.rejected
     ? '0 0 7px 2px rgba(240,68,68,0.4)'
-    : t.expired
+    : item.expired
     ? '0 0 7px 2px rgba(113,113,122,0.4)'
-    : t.done
+    : item.done
     ? '0 0 7px 2px rgba(43,189,110,0.4)'
-    : t.current
+    : item.current
     ? '0 0 7px 2px rgba(245,158,11,0.4)'
     : 'none',
 })))
@@ -94,12 +96,12 @@ const timelineItems = computed(() => timeline.value.map(t => ({
       <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 15px; overflow: hidden;">
         <div
           v-for="([k, v, mono], i) in [
-            ['Moeda original', request.currency, false],
-            ['Valor local', `${request.currency} ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(request.amount_local)}`, true],
-            ['Equivalente em EUR', formatEur(request.amount_eur), true],
-            ['Taxa aplicada', request.exchange_rate ? String(request.exchange_rate) : '—', true],
-            ['Fonte da taxa', request.exchange_rate_source ?? '—', false],
-            ['Solicitante', request.user?.name ?? '—', false],
+            [t('requests.detail.originalCurrency'), request.currency, false],
+            [t('requests.detail.localValue'), `${request.currency} ${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2 }).format(request.amount_local)}`, true],
+            [t('requests.detail.inEur'), formatEur(request.amount_eur), true],
+            [t('requests.detail.rateApplied'), request.exchange_rate ? String(request.exchange_rate) : '—', true],
+            [t('requests.detail.rateSource'), request.exchange_rate_source ?? '—', false],
+            [t('requests.detail.requester'), request.user?.name ?? '—', false],
           ]"
           :key="k"
           style="display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 13px 15px;"
@@ -115,7 +117,7 @@ const timelineItems = computed(() => timeline.value.map(t => ({
 
       <!-- Timeline -->
       <div>
-        <div style="font-size: 13.5px; font-weight: 500; color: var(--text-primary); margin-bottom: 13px;">Histórico</div>
+        <div style="font-size: 13.5px; font-weight: 500; color: var(--text-primary); margin-bottom: 13px;">{{ t('requests.detail.timeline') }}</div>
         <div class="flex flex-col">
           <div v-for="(item, i) in timelineItems" :key="i" class="flex" style="gap: 12px;">
             <div class="flex flex-col items-center">

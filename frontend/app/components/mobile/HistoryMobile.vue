@@ -2,19 +2,21 @@
 <script setup lang="ts">
 import { paymentRequestsService, type PaymentRequest, type PaginationMeta } from '~/services/paymentRequestsService'
 import { useToast } from 'vue-toastification'
+import { useT } from '~/composables/useT'
 
 const router = useRouter()
 const toast = useToast()
+const { t } = useT()
 
 type FilterValue = 'all' | 'pending' | 'approved' | 'rejected' | 'expired'
 
-const filters: { value: FilterValue; label: string }[] = [
-  { value: 'all',      label: 'Todas' },
-  { value: 'pending',  label: 'Pendente' },
-  { value: 'approved', label: 'Aprovado' },
-  { value: 'rejected', label: 'Rejeitado' },
-  { value: 'expired',  label: 'Expirado' },
-]
+const filters = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: 'all',      label: t('history.filtersMobile.all') },
+  { value: 'pending',  label: t('history.filtersMobile.pending') },
+  { value: 'approved', label: t('history.filtersMobile.approved') },
+  { value: 'rejected', label: t('history.filtersMobile.rejected') },
+  { value: 'expired',  label: t('history.filtersMobile.expired') },
+])
 
 const requests = ref<PaymentRequest[]>([])
 const loading = ref(false)
@@ -32,7 +34,7 @@ async function fetchRequests() {
     requests.value = result.data
     meta.value = result.meta
   } catch {
-    toast.error('Erro ao carregar histórico.')
+    toast.error(t('shared.errors.loadHistory'))
   } finally {
     loading.value = false
   }
@@ -58,8 +60,8 @@ onMounted(fetchRequests)
     <!-- Header -->
     <div class="flex items-center justify-between">
       <div>
-        <div style="font-size: 11px; color: var(--text-muted);">Suas requisições</div>
-        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Histórico</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ t('history.headerMobile') }}</div>
+        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">{{ t('history.title') }}</div>
       </div>
     </div>
 
@@ -94,7 +96,7 @@ onMounted(fetchRequests)
       </template>
 
       <div v-else-if="requests.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0;">
-        Nenhuma requisição encontrada.
+        {{ t('history.empty') }}
       </div>
 
       <MobileRequestCard

@@ -4,8 +4,10 @@ import NumberFlow from '@number-flow/vue'
 import { Clock, Check, X, Shield } from '@lucide/vue'
 import { useFinanceController } from '~/composables/useFinanceController'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 const auth = useAuthStore()
+const { t } = useT()
 const router = useRouter()
 const { requests, loading, page, meta, setPage, resolving, fading, metrics, resolve, formatEur, formatExpiry, isCritical, CURRENCY_FLAG } = useFinanceController()
 </script>
@@ -16,8 +18,8 @@ const { requests, loading, page, meta, setPage, resolving, fading, metrics, reso
     <!-- Header with role pill -->
     <div class="flex items-center justify-between">
       <div>
-        <div style="font-size: 11px; color: var(--text-muted);">Painel</div>
-        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">Aprovações</div>
+        <div style="font-size: 11px; color: var(--text-muted);">{{ t('finance.panel.panelLabel') }}</div>
+        <div style="font-size: 17px; font-weight: 500; color: var(--text-primary); margin-top: 1px;">{{ t('finance.panel.title') }}</div>
       </div>
       <div class="flex items-center gap-2">
         <UiNotificationBell />
@@ -27,7 +29,7 @@ const { requests, loading, page, meta, setPage, resolving, fading, metrics, reso
           </span>
           <span style="display: flex; flex-direction: column; line-height: 1.2;">
             <span style="font-size: 12px; font-weight: 500; color: #fff;">{{ auth.user?.name?.split(' ')[0] }}</span>
-            <span style="font-size: 10px; color: rgba(255,255,255,.8);">Finance</span>
+            <span style="font-size: 10px; color: rgba(255,255,255,.8);">{{ t('finance.panel.roleLabel') }}</span>
           </span>
         </span>
       </div>
@@ -37,10 +39,10 @@ const { requests, loading, page, meta, setPage, resolving, fading, metrics, reso
     <div class="grid grid-cols-2" style="gap: 9px;">
       <div
         v-for="({ label, numericValue, prefix, formatOptions, tone }) in [
-          { label: 'Aguardando revisão', numericValue: metrics.pending,       prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-pending-fg)' },
-          { label: 'Total em EUR',       numericValue: metrics.total,         prefix: '€ ', formatOptions: { minimumFractionDigits: 0 },  tone: 'var(--text-primary)' },
-          { label: 'Aprovados hoje',     numericValue: metrics.approved,      prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-approved-fg)' },
-          { label: 'Expiram em 24h',     numericValue: metrics.expiringIn24h, prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-rejected-fg)' },
+          { label: t('finance.metrics.awaitingReview'), numericValue: metrics.pending,       prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-pending-fg)' },
+          { label: t('finance.metrics.totalEur'),       numericValue: metrics.total,         prefix: '€ ', formatOptions: { minimumFractionDigits: 0 },  tone: 'var(--text-primary)' },
+          { label: t('finance.metrics.approvedToday'),     numericValue: metrics.approved,      prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-approved-fg)' },
+          { label: t('finance.metrics.expiringIn24h'),     numericValue: metrics.expiringIn24h, prefix: undefined, formatOptions: undefined,                      tone: 'var(--status-rejected-fg)' },
         ]"
         :key="label"
         style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 13px; padding: 13px 14px;"
@@ -66,7 +68,7 @@ const { requests, loading, page, meta, setPage, resolving, fading, metrics, reso
       </div>
     </div>
 
-    <div style="font-size: 14px; font-weight: 500; color: var(--text-primary);">Fila de revisão</div>
+    <div style="font-size: 14px; font-weight: 500; color: var(--text-primary);">{{ t('finance.queue.titleMobile') }}</div>
 
     <!-- Queue list -->
     <div class="flex flex-col" style="gap: 10px;">
@@ -86,7 +88,7 @@ const { requests, loading, page, meta, setPage, resolving, fading, metrics, reso
       </template>
 
       <div v-else-if="requests.length === 0" style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 32px 0;">
-        Fila vazia — tudo revisado. ✓
+        {{ t('finance.queue.empty') }}
       </div>
 
       <div

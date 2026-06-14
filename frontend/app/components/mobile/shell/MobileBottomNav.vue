@@ -2,33 +2,35 @@
 <script setup lang="ts">
 import { Home, Receipt, Plus, Shield, User } from '@lucide/vue'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 const auth = useAuthStore()
 const route = useRoute()
 const router = useRouter()
+const { t } = useT()
 
 // Hide on flow screens (new request and detail)
 const hidden = computed(() =>
   route.path.startsWith('/requests/')
 )
 
-const employeeTabs = [
-  { id: 'home',    label: 'Início',           icon: Home,    to: '/' },
-  { id: 'history', label: 'Requisições',      icon: Receipt, to: '/history' },
-  { id: 'new',     label: 'Nova\nRequisição', icon: Plus,    to: '/requests/new' },
-  { id: 'profile', label: 'Perfil',           icon: User,    to: '/profile' },
-]
+const employeeTabs = computed(() => [
+  { id: 'home',    label: t('nav.home'),        icon: Home,    to: '/' },
+  { id: 'history', label: t('nav.requests'),    icon: Receipt, to: '/history' },
+  { id: 'new',     label: t('nav.newRequest'),  icon: Plus,    to: '/requests/new' },
+  { id: 'profile', label: t('nav.profile'),     icon: User,    to: '/profile' },
+])
 
-const financeTabs = [
-  { id: 'home',    label: 'Início',      icon: Home,    to: '/finance' },
-  { id: 'history', label: 'Requisições', icon: Receipt, to: '/finance/history' },
-  { id: 'finance', label: 'Financeiro',  icon: Shield,  to: '/finance/reports' },
-  { id: 'profile', label: 'Perfil',      icon: User,    to: '/profile' },
-]
+const financeTabs = computed(() => [
+  { id: 'home',    label: t('nav.home'),     icon: Home,    to: '/finance' },
+  { id: 'history', label: t('nav.requests'), icon: Receipt, to: '/finance/history' },
+  { id: 'finance', label: t('nav.finance'),  icon: Shield,  to: '/finance/reports' },
+  { id: 'profile', label: t('nav.profile'),  icon: User,    to: '/profile' },
+])
 
-const tabs = computed(() => auth.isFinance ? financeTabs : employeeTabs)
+const tabs = computed(() => auth.isFinance ? financeTabs.value : employeeTabs.value)
 
-function isActive(tab: typeof employeeTabs[0]) {
+function isActive(tab: { id: string; label: string; icon: unknown; to: string }) {
   if (tab.to === '/' || tab.to === '/finance') return route.path === tab.to
   return route.path.startsWith(tab.to)
 }

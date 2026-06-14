@@ -2,10 +2,12 @@
 <script setup lang="ts">
 import NumberFlow from '@number-flow/vue'
 import { useDashboardController } from '~/composables/useDashboardController'
+import { useT } from '~/composables/useT'
 import { useAuthStore } from '~/stores/auth'
 
 const auth = useAuthStore()
 const router = useRouter()
+const { t } = useT()
 const {
   requests, loading,
   page, meta, setPage,
@@ -18,12 +20,12 @@ const {
 
 type FilterValue = 'all' | 'pending' | 'approved' | 'rejected'
 
-const filters: { value: FilterValue; label: string }[] = [
-  { value: 'all',      label: 'Todas' },
-  { value: 'pending',  label: 'Pendente' },
-  { value: 'approved', label: 'Aprovado' },
-  { value: 'rejected', label: 'Rejeitado' },
-]
+const filters = computed<{ value: FilterValue; label: string }[]>(() => [
+  { value: 'all',      label: t('history.filtersMobile.all') },
+  { value: 'pending',  label: t('history.filtersMobile.pending') },
+  { value: 'approved', label: t('history.filtersMobile.approved') },
+  { value: 'rejected', label: t('history.filtersMobile.rejected') },
+])
 
 const activeFilter = computed(() => (statusFilter.value as FilterValue | undefined) ?? 'all')
 
@@ -36,7 +38,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
     <!-- Greeting + avatar -->
     <div class="flex items-center justify-between">
       <div>
-        <div style="font-size: 12.5px; color: var(--text-tertiary);">Bem-vindo de volta,</div>
+        <div style="font-size: 12.5px; color: var(--text-tertiary);">{{ t('home.greetingMobile') }}</div>
         <div style="font-size: 19px; font-weight: 500; color: var(--text-primary); margin-top: 2px;">{{ firstName }}</div>
       </div>
       <div class="flex items-center" style="gap: 10px;">
@@ -49,7 +51,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
     <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 18px; padding: 20px; position: relative; overflow: hidden;">
       <span style="position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--red-500);" />
       <div class="flex items-center justify-between">
-        <span style="font-size: 12.5px; color: var(--text-tertiary);">Total enviado este mês</span>
+        <span style="font-size: 12.5px; color: var(--text-tertiary);">{{ t('home.totalSentMobile') }}</span>
       </div>
       <ClientOnly>
         <NumberFlow
@@ -66,7 +68,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
         </template>
       </ClientOnly>
       <div style="font-size: 12px; color: var(--text-muted); margin-top: 5px;">
-        {{ totalMetric?.count ?? 0 }} {{ (totalMetric?.count ?? 0) === 1 ? 'requisição' : 'requisições' }}
+        {{ totalMetric?.count ?? 0 }} {{ (totalMetric?.count ?? 0) === 1 ? t('home.request') : t('home.requests') }}
       </div>
     </div>
 
@@ -74,9 +76,9 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
     <div class="grid grid-cols-3" style="gap: 8px;">
       <div
         v-for="({ label, numericValue, tone, isLoading }) in [
-          { label: 'Pendente',  numericValue: pendingMetric?.count  ?? 0, tone: 'var(--status-pending-fg)',  isLoading: pendingLoading  },
-          { label: 'Aprovado',  numericValue: approvedMetric?.count ?? 0, tone: 'var(--status-approved-fg)', isLoading: approvedLoading },
-          { label: 'Rejeitado', numericValue: rejectedMetric?.count ?? 0, tone: 'var(--status-rejected-fg)', isLoading: rejectedLoading },
+          { label: t('home.pending'),  numericValue: pendingMetric?.count  ?? 0, tone: 'var(--status-pending-fg)',  isLoading: pendingLoading  },
+          { label: t('home.approved'), numericValue: approvedMetric?.count ?? 0, tone: 'var(--status-approved-fg)', isLoading: approvedLoading },
+          { label: t('home.rejected'), numericValue: rejectedMetric?.count ?? 0, tone: 'var(--status-rejected-fg)', isLoading: rejectedLoading },
         ]"
         :key="label"
         style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 13px; padding: 12px 13px;"
@@ -100,7 +102,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
 
     <!-- Filter chips -->
     <div>
-      <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">Requisições recentes</div>
+      <div style="font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">{{ t('home.recentRequests') }}</div>
       <div class="flex" style="gap: 7px; overflow-x: auto; margin: 0 -16px; padding: 0 16px 4px;">
         <button
           v-for="f in filters"
@@ -132,7 +134,7 @@ const firstName = computed(() => auth.user?.name?.split(' ')[0] ?? '')
 
       <template v-else-if="requests.length === 0">
         <div style="text-align: center; color: var(--text-muted); font-size: 13px; padding: 24px 0;">
-          Nenhuma requisição neste filtro.
+          {{ t('home.empty') }}
         </div>
       </template>
 

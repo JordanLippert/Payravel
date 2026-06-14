@@ -3,9 +3,11 @@
 import { ChevronRight, LogOut } from '@lucide/vue'
 import { useProfileController } from '~/composables/useProfileController'
 import { useAuthStore } from '~/stores/auth'
+import { useT } from '~/composables/useT'
 
 const auth = useAuthStore()
 const router = useRouter()
+const { t } = useT()
 const {
   profile, loading,
   infoForm, infoSaving, infoErrors, saveInfo,
@@ -13,7 +15,7 @@ const {
   openFilePicker, confirmCrop, cancelCrop,
 } = useProfileController()
 
-const roleLabel = computed(() => profile.value?.role === 'finance' ? 'Finance' : 'Employee')
+const roleLabel = computed(() => profile.value?.role === 'finance' ? t('profile.roles.finance') : t('profile.roles.employee'))
 
 async function logout() {
   try { await auth.logout() } catch { /* already invalid */ }
@@ -28,7 +30,7 @@ const showPasswordSection = ref(false)
 <template>
   <div style="padding: 8px 16px 96px; display: flex; flex-direction: column; gap: 20px;">
 
-    <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">Perfil</div>
+    <div style="font-size: 17px; font-weight: 500; color: var(--text-primary);">{{ t('profile.title') }}</div>
 
     <!-- Avatar block -->
     <div
@@ -69,17 +71,17 @@ const showPasswordSection = ref(false)
       <div style="font-size: 12.5px; font-weight: 500; color: var(--text-primary); margin-bottom: 10px;">Informações</div>
       <div style="background: var(--surface-card, var(--bg-elevated)); border: 0.5px solid var(--border-subtle); border-radius: 14px; overflow: hidden;">
         <div style="padding: 13px 15px; border-bottom: 0.5px solid var(--border-subtle);">
-          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">Nome</div>
+          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">{{ t('profile.name') }}</div>
           <UiInput v-model="infoForm.name" :hint="infoErrors.name" style="margin: 0;" />
         </div>
         <div style="padding: 13px 15px; border-bottom: 0.5px solid var(--border-subtle);">
-          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">E-mail</div>
+          <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 4px;">{{ t('profile.email') }}</div>
           <UiInput v-model="infoForm.email" type="email" :hint="infoErrors.email" style="margin: 0;" />
         </div>
       </div>
       <div class="flex justify-end" style="margin-top: 10px;">
         <UiButton variant="primary" size="sm" :loading="infoSaving" @click="saveInfo">
-          Salvar
+          {{ t('profile.save') }}
         </UiButton>
       </div>
     </div>
@@ -94,16 +96,20 @@ const showPasswordSection = ref(false)
           style="padding: 14px 15px; background: transparent; border: none; border-bottom: 0.5px solid var(--border-subtle); cursor: pointer;"
           @click="showPasswordSection = !showPasswordSection"
         >
-          <span style="font-size: 13.5px; color: var(--text-primary);">Alterar senha</span>
+          <span style="font-size: 13.5px; color: var(--text-primary);">{{ t('profile.password.title') }}</span>
           <ChevronRight :size="15" style="color: var(--text-muted);" />
         </button>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 13px 15px; border-bottom: 0.5px solid var(--border-subtle);">
+          <span style="font-size: 13.5px; color: var(--text-primary);">{{ t('profile.language') }}</span>
+          <UiLangToggle />
+        </div>
         <button
           type="button"
           class="w-full flex items-center justify-between"
           style="padding: 14px 15px; background: transparent; border: none; cursor: pointer;"
           @click="logout"
         >
-          <span style="font-size: 13.5px; color: var(--status-rejected-fg);">Sair</span>
+          <span style="font-size: 13.5px; color: var(--status-rejected-fg);">{{ t('profile.menu.logout') }}</span>
           <LogOut :size="15" style="color: var(--status-rejected-fg);" />
         </button>
       </div>
