@@ -7,14 +7,14 @@ test.describe('Painel financeiro', () => {
 
   test('finance role can access /finance', async ({ page }) => {
     await expect(page).toHaveURL('/finance')
-    await expect(page.getByText('FILA DE APROVAÇÃO')).toBeVisible()
+    await expect(page.getByText('Fila de aprovação')).toBeVisible()
   })
 
   test('renders 4 KPI metric cards', async ({ page }) => {
-    await expect(page.getByText('TOTAL')).toBeVisible()
-    await expect(page.getByText('PENDENTES')).toBeVisible()
-    await expect(page.getByText('APROVADAS')).toBeVisible()
-    await expect(page.getByText('REJEITADAS')).toBeVisible()
+    await expect(page.getByText('Total em EUR')).toBeVisible()
+    await expect(page.getByText('Aguardando revisão')).toBeVisible()
+    await expect(page.getByText('Aprovados hoje')).toBeVisible()
+    await expect(page.getByText('Expiram em 24h')).toBeVisible()
   })
 
   test('renders table with action column', async ({ page }) => {

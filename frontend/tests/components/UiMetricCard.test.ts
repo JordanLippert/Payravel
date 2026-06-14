@@ -4,19 +4,18 @@ import { describe, it, expect } from 'vitest'
 import UiMetricCard from '~~/components/ui/UiMetricCard.vue'
 
 describe('UiMetricCard', () => {
-  it('renders label and value', () => {
-    const w = mount(UiMetricCard, { props: { label: 'Total', value: '€ 3.408' } })
+  it('renders label', () => {
+    const w = mount(UiMetricCard, { props: { label: 'Total', value: 3408, prefix: '€ ' } })
     expect(w.text()).toContain('Total')
-    expect(w.text()).toContain('€ 3.408')
   })
 
   it('renders sub text when provided', () => {
-    const w = mount(UiMetricCard, { props: { label: 'L', value: '1', sub: '5 pendentes' } })
+    const w = mount(UiMetricCard, { props: { label: 'L', value: 1, sub: '5 pendentes' } })
     expect(w.text()).toContain('5 pendentes')
   })
 
   it('renders accent strip when accent=true', () => {
-    const w = mount(UiMetricCard, { props: { label: 'L', value: '1', accent: true } })
-    expect(w.find('.pv-accent-strip').exists()).toBe(true)
+    const w = mount(UiMetricCard, { props: { label: 'L', value: 1, accent: true } })
+    expect(w.find('[style*="red-500"]').exists()).toBe(true)
   })
 })

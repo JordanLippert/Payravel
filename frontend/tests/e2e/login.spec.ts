@@ -33,9 +33,9 @@ test.describe('Login', () => {
   })
 
   test('toggle to register mode shows name field', async ({ page }) => {
-    await page.getByRole('button', { name: 'Criar conta' }).click()
-    await expect(page.getByLabel('Nome')).toBeVisible()
-    await expect(page.getByRole('button', { name: 'Criar conta' }).last()).toBeVisible()
+    await page.getByRole('button', { name: 'Registrar' }).click()
+    await expect(page.getByLabel('Nome completo')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Registrar' }).last()).toBeVisible()
   })
 
   test('email validation shows inline error', async ({ page }) => {

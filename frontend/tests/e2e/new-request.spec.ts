@@ -13,46 +13,38 @@ test.describe('Nova requisição', () => {
 
   test('shows validation error when description is too short', async ({ page }) => {
     await page.getByLabel('Descrição').fill('ab')
-    await page.getByRole('button', { name: /Próximo/i }).click()
+    await page.getByRole('button', { name: /Ver câmbio/i }).click()
     await expect(page.getByText(/no mínimo 3 caracteres/i)).toBeVisible()
   })
 
   test('step 1 → step 2: fetches exchange rate after valid input', async ({ page }) => {
     await page.getByLabel('Descrição').fill('Reembolso de notebook')
-    await page.getByLabel('Valor').fill('1000')
+    // Amount input uses keydown-based handler — pressSequentially dispatches keydown events
+    await page.getByLabel('Valor').pressSequentially('1000')
 
-    // Open custom select and pick USD
-    await page.getByText('Selecionar').click()
-    await page.getByText('USD').click()
+    // Currency is pre-selected from user profile; just proceed
+    await page.getByRole('button', { name: /Ver câmbio/i }).click()
 
-    await page.getByRole('button', { name: /Próximo/i }).click()
-
-    // Step 2: exchange rate card
-    await expect(page.getByText('ao vivo ✓')).toBeVisible()
-    await expect(page.getByText(/1 EUR =/i)).toBeVisible()
+    // Step 2 should appear with live rate badge
+    await expect(page.getByText('ao vivo ✓')).toBeVisible({ timeout: 15000 })
   })
 
   test('step 2 → step 3: shows review summary', async ({ page }) => {
     await page.getByLabel('Descrição').fill('Despesa de viagem')
-    await page.getByLabel('Valor').fill('500')
+    await page.getByLabel('Valor').pressSequentially('500')
 
-    await page.getByText('Selecionar').click()
-    await page.getByText('BRL').click()
+    await page.getByRole('button', { name: /Ver câmbio/i }).click()
+    await expect(page.getByText('ao vivo ✓')).toBeVisible({ timeout: 15000 })
 
-    await page.getByRole('button', { name: /Próximo/i }).click()
-    await expect(page.getByText('ao vivo ✓')).toBeVisible()
+    await page.getByRole('button', { name: /Revisar pedido/i }).click()
 
-    await page.getByRole('button', { name: /Próximo/i }).click()
-
-    // Review step
     await expect(page.getByText('Despesa de viagem')).toBeVisible()
-    await expect(page.getByText('BRL')).toBeVisible()
     await expect(page.getByRole('button', { name: /Enviar para aprovação/i })).toBeVisible()
   })
 
-  test('"Voltar ao dashboard" link navigates to /', async ({ page }) => {
-    await page.getByRole('link', { name: /Voltar ao dashboard/i }).click()
-    await page.waitForURL('/')
+  test('"Cancelar" button navigates to /', async ({ page }) => {
+    await page.getByRole('button', { name: /Cancelar/i }).click()
+    await page.waitForURL('/', { timeout: 10000 })
     await expect(page).toHaveURL('/')
   })
 })

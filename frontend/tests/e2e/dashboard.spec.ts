@@ -6,10 +6,10 @@ test.describe('Dashboard (employee)', () => {
   })
 
   test('renders 4 KPI metric cards', async ({ page }) => {
-    await expect(page.getByText('TOTAL ENVIADO')).toBeVisible()
-    await expect(page.getByText('PENDENTE')).toBeVisible()
-    await expect(page.getByText('APROVADO')).toBeVisible()
-    await expect(page.getByText('REJEITADO')).toBeVisible()
+    await expect(page.getByText('Total enviado')).toBeVisible()
+    await expect(page.getByText('Pendente')).toBeVisible()
+    await expect(page.getByText('Aprovado')).toBeVisible()
+    await expect(page.getByText('Rejeitado')).toBeVisible()
   })
 
   test('renders requests table with columns', async ({ page }) => {

@@ -15,28 +15,25 @@ test.describe('Detalhe da requisição', () => {
     await rows.first().click()
     await page.waitForURL(/\/requests\/\d+/)
 
-    // Big EUR amount visible
-    await expect(page.getByText('Valor em EUR')).toBeVisible()
-
-    // Conversion table
-    await expect(page.getByText('Descrição')).toBeVisible()
-    await expect(page.getByText('Valor original')).toBeVisible()
-    await expect(page.getByText('Moeda')).toBeVisible()
-    await expect(page.getByText('Data')).toBeVisible()
+    // Conversion info section
+    await expect(page.getByText('Informações da conversão')).toBeVisible()
+    await expect(page.getByText('Moeda original')).toBeVisible()
+    await expect(page.getByText('Valor local')).toBeVisible()
+    await expect(page.getByText('Criada em')).toBeVisible()
 
     // Timeline sidebar
-    await expect(page.getByText('LINHA DO TEMPO')).toBeVisible()
+    await expect(page.getByText('Histórico')).toBeVisible()
     await expect(page.getByText('Requisição enviada')).toBeVisible()
   })
 
-  test('"Voltar ao dashboard" link works', async ({ page }) => {
+  test('"Voltar para requisições" button works', async ({ page }) => {
     await page.goto('/')
     const rows = page.getByRole('row').filter({ hasNot: page.getByRole('columnheader') })
     if (await rows.count() === 0) { test.skip(); return }
 
     await rows.first().click()
     await page.waitForURL(/\/requests\/\d+/)
-    await page.getByRole('link', { name: /Voltar ao dashboard/i }).click()
+    await page.getByRole('button', { name: /Voltar para requisições/i }).click()
     await page.waitForURL('/')
     await expect(page).toHaveURL('/')
   })
