@@ -5,6 +5,7 @@ test.use({ storageState: { cookies: [], origins: [] } })
 test.describe('Login', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/login')
+    await page.waitForLoadState('networkidle')
   })
 
   test('unauthenticated access redirects to login', async ({ page }) => {

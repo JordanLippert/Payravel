@@ -69,10 +69,6 @@ const nav = computed(() => [
 
         <div v-if="loading" class="py-10 text-center text-sm" style="color: var(--text-muted);">Carregando...</div>
 
-        <div v-else-if="requests.length === 0" class="py-10 text-center text-sm" style="color: var(--text-muted);">
-          {{ t('finance.queue.empty') }}
-        </div>
-
         <div v-else class="overflow-x-auto">
           <table class="w-full" style="border-collapse: collapse;">
             <thead>
@@ -86,6 +82,9 @@ const nav = computed(() => [
               </tr>
             </thead>
             <tbody>
+              <tr v-if="requests.length === 0">
+                <td colspan="6" class="py-10 text-center text-sm" style="color: var(--text-muted);">{{ t('finance.queue.empty') }}</td>
+              </tr>
               <tr
                 v-for="(req, i) in requests"
                 :key="req.id"

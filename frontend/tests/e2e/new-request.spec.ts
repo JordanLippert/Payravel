@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Nova requisição', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/requests/new')
+    await page.waitForLoadState('networkidle')
   })
 
   test('renders 3-step form with step 1 active', async ({ page }) => {

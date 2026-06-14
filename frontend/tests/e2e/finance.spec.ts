@@ -3,11 +3,12 @@ import { test, expect } from '@playwright/test'
 test.describe('Painel financeiro', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/finance')
+    await page.waitForLoadState('networkidle')
   })
 
   test('finance role can access /finance', async ({ page }) => {
     await expect(page).toHaveURL('/finance')
-    await expect(page.getByText('Fila de aprovação')).toBeVisible()
+    await expect(page.getByRole('main').getByText('Fila de aprovação')).toBeVisible()
   })
 
   test('renders 4 KPI metric cards', async ({ page }) => {

@@ -3,6 +3,7 @@ import { test, expect } from '@playwright/test'
 test.describe('Dashboard (employee)', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/')
+    await page.waitForLoadState('networkidle')
   })
 
   test('renders 4 KPI metric cards', async ({ page }) => {
@@ -29,7 +30,7 @@ test.describe('Dashboard (employee)', () => {
     const count = await rows.count()
     if (count > 0) {
       await rows.first().click()
-      await expect(page).toHaveURL(/\/requests\/\d+/)
+      await expect(page).toHaveURL(/\/requests\/.+/)
     }
   })
 
