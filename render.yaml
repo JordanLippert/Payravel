@@ -21,18 +21,17 @@ services:
         sync: false
       - key: LOG_CHANNEL
         value: stderr
-      # --- Database (Neon PostgreSQL) ---
+      # --- Database (Neon PostgreSQL) — all values set in Render dashboard ---
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_HOST
-        value: ep-gentle-rain-ac8acba5.sa-east-1.aws.neon.tech
+        sync: false
       - key: DB_PORT
         value: "5432"
       - key: DB_DATABASE
-        value: neondb
+        sync: false
       - key: DB_USERNAME
-        value: neondb_owner
-      # Neon DB password — set in Render dashboard
+        sync: false
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
