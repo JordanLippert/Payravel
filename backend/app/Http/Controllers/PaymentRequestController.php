@@ -48,6 +48,7 @@ class PaymentRequestController extends Controller
         try {
             $dto = new CreatePaymentRequestDTO(
                 amountLocal: $request->amount,
+                currency:    $request->currency,
                 description: $request->description,
             );
 

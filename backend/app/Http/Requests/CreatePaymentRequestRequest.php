@@ -16,6 +16,7 @@ class CreatePaymentRequestRequest extends FormRequest
         return [
             'amount'      => ['required', 'numeric', 'min:0.01', 'max:9999999.99'],
             'description' => ['nullable', 'string', 'max:500'],
+            'currency'    => ['required', 'string', 'in:BRL,USD,EUR,GBP,JPY,MXN'],
         ];
     }
 }

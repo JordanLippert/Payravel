@@ -16,12 +16,12 @@ class PaymentRequestService
 
     public function create(User $user, CreatePaymentRequestDTO $dto): PaymentRequest
     {
-        $rate = $this->exchangeRateService->getRate($user->currency);
+        $rate = $this->exchangeRateService->getRate($dto->currency);
 
         return PaymentRequest::create([
             'user_id'                  => $user->id,
             'amount_local'             => $dto->amountLocal,
-            'currency'                 => $user->currency,
+            'currency'                 => $dto->currency,
             'exchange_rate'            => $rate->rate,
             'exchange_rate_source'     => $rate->source,
             'exchange_rate_fetched_at' => $rate->fetchedAt,
