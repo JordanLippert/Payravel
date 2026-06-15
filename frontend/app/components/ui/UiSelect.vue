@@ -27,11 +27,22 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [v: string] }>()
 
 const open = ref(false)
+const openAbove = ref(false)
 const containerRef = ref<HTMLElement>()
+const buttonRef = ref<HTMLButtonElement>()
 
 onClickOutside(containerRef, () => { open.value = false })
 
 const selected = computed(() => props.options.find(o => o.value === props.modelValue))
+
+function toggleOpen() {
+  if (!open.value && buttonRef.value) {
+    const rect = buttonRef.value.getBoundingClientRect()
+    const spaceBelow = window.innerHeight - rect.bottom
+    openAbove.value = spaceBelow < 260
+  }
+  open.value = !open.value
+}
 </script>
 
 <template>
@@ -39,6 +50,7 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
     <span v-if="label" class="text-xs font-medium font-sans" style="color: var(--text-tertiary);">{{ label }}</span>
     <div class="relative">
       <button
+        ref="buttonRef"
         type="button"
         :disabled="disabled"
         class="pv-select-btn w-full flex items-center gap-2 h-[38px] px-3 rounded-sm border-[0.5px] text-sm font-sans transition-colors duration-[120ms] disabled:opacity-40 disabled:cursor-not-allowed"
@@ -46,7 +58,7 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
           background: 'var(--bg-input)',
           borderColor: open ? 'var(--red-border)' : 'var(--border-default)',
         }"
-        @click="open = !open"
+        @click="toggleOpen"
       >
         <span v-if="selected" class="flex items-center gap-2 flex-1" style="color: var(--text-primary);">
           <span v-if="selected.flag" :class="`fi fi-${selected.flag}`" style="width: 18px; height: 14px; border-radius: 2px;" />
@@ -64,7 +76,8 @@ const selected = computed(() => props.options.find(o => o.value === props.modelV
       <Transition name="dropdown">
         <div
           v-if="open"
-          class="absolute top-[calc(100%+4px)] left-0 right-0 z-20 rounded-md border-[0.5px] p-1 max-h-60 overflow-y-auto"
+          class="absolute left-0 right-0 z-20 rounded-md border-[0.5px] p-1 max-h-60 overflow-y-auto"
+          :class="openAbove ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]'"
           :style="{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-menu)' }"
         >
           <div
