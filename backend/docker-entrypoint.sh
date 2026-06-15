@@ -1,9 +1,6 @@
 #!/bin/sh
 set -e
 
-# Restore Passport RSA keys from env vars (base64-encoded PEM).
-# If env vars are not set, generate fresh keys — tokens will be
-# invalidated on every container restart (acceptable for dev/demo).
 if [ -n "$PASSPORT_PRIVATE_KEY" ]; then
     printf '%s' "$PASSPORT_PRIVATE_KEY" | base64 -d > storage/oauth-private.key
     chmod 600 storage/oauth-private.key
@@ -20,9 +17,17 @@ fi
 php artisan config:cache
 php artisan migrate --force
 
-# First-boot detection: check if OAuth clients exist in DB.
-# oauth_clients = 0 means fresh DB → install Passport + seed users.
-OAUTH_COUNT=$(php artisan tinker --execute="echo \DB::table('oauth_clients')->count();" 2>/dev/null | grep -E '^[0-9]+$' | tail -1)
+# First-boot detection via PDO (no Laravel bootstrap, no TTY needed).
+OAUTH_COUNT=$(php -r "
+try {
+    \$dsn = 'pgsql:host=' . getenv('DB_HOST') . ';port=' . getenv('DB_PORT') . ';dbname=' . getenv('DB_DATABASE') . ';sslmode=' . getenv('DB_SSLMODE');
+    \$pdo = new PDO(\$dsn, getenv('DB_USERNAME'), getenv('DB_PASSWORD'));
+    echo \$pdo->query('SELECT COUNT(*) FROM oauth_clients')->fetchColumn();
+} catch (Exception \$e) {
+    echo '0';
+}
+" 2>/dev/null)
+
 if [ -z "$OAUTH_COUNT" ] || [ "$OAUTH_COUNT" = "0" ]; then
     php artisan passport:install --uuids
     php artisan db:seed --force
