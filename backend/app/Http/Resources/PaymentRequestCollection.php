@@ -21,4 +21,9 @@ class PaymentRequestCollection extends ResourceCollection
             ],
         ];
     }
+
+    public function paginationInformation($request, $paginated, $default): array
+    {
+        return [];
+    }
 }

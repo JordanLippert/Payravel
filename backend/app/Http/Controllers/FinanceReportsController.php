@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\PaymentStatus;
 use App\Models\PaymentRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -12,33 +13,33 @@ class FinanceReportsController extends Controller
     {
         $all = PaymentRequest::with('user')->get();
 
-        $approved = $all->where('status', 'approved');
-        $rejected = $all->where('status', 'rejected');
-        $pending  = $all->where('status', 'pending');
-        $expired  = $all->where('status', 'expired');
+        $approved = $all->where('status', PaymentStatus::Approved);
+        $rejected = $all->where('status', PaymentStatus::Rejected);
+        $pending  = $all->where('status', PaymentStatus::Pending);
+        $expired  = $all->where('status', PaymentStatus::Expired);
 
         $resolvedCount = $approved->count() + $rejected->count();
 
-        $byCurrency = $all
-            ->whereIn('status', ['approved', 'rejected'])
+        $reviewed = $all->whereIn('status', [PaymentStatus::Approved, PaymentStatus::Rejected]);
+
+        $byCurrency = $reviewed
             ->groupBy('currency')
             ->map(fn ($reqs, $currency) => [
                 'currency'     => $currency,
-                'approved'     => $reqs->where('status', 'approved')->count(),
-                'rejected'     => $reqs->where('status', 'rejected')->count(),
-                'eur_approved' => (float) $reqs->where('status', 'approved')->sum('amount_eur'),
+                'approved'     => $reqs->where('status', PaymentStatus::Approved)->count(),
+                'rejected'     => $reqs->where('status', PaymentStatus::Rejected)->count(),
+                'eur_approved' => (float) $reqs->where('status', PaymentStatus::Approved)->sum('amount_eur'),
             ])
             ->sortByDesc(fn ($r) => $r['eur_approved'])
             ->values();
 
-        $byEmployee = $all
-            ->whereIn('status', ['approved', 'rejected'])
+        $byEmployee = $reviewed
             ->groupBy(fn ($r) => $r->user?->name ?? 'Desconhecido')
             ->map(fn ($reqs, $name) => [
                 'name'         => $name,
-                'approved'     => $reqs->where('status', 'approved')->count(),
-                'rejected'     => $reqs->where('status', 'rejected')->count(),
-                'eur_approved' => (float) $reqs->where('status', 'approved')->sum('amount_eur'),
+                'approved'     => $reqs->where('status', PaymentStatus::Approved)->count(),
+                'rejected'     => $reqs->where('status', PaymentStatus::Rejected)->count(),
+                'eur_approved' => (float) $reqs->where('status', PaymentStatus::Approved)->sum('amount_eur'),
             ])
             ->sortByDesc(fn ($r) => $r['eur_approved'])
             ->values();
