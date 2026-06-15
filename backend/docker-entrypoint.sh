@@ -19,4 +19,13 @@ fi
 
 php artisan config:cache
 php artisan migrate --force
+
+# First-boot detection: check if OAuth clients exist in DB.
+# oauth_clients = 0 means fresh DB → install Passport + seed users.
+OAUTH_COUNT=$(php artisan tinker --execute="echo \DB::table('oauth_clients')->count();" 2>/dev/null | grep -E '^[0-9]+$' | tail -1)
+if [ -z "$OAUTH_COUNT" ] || [ "$OAUTH_COUNT" = "0" ]; then
+    php artisan passport:install --uuids
+    php artisan db:seed --force
+fi
+
 exec php artisan serve --host=0.0.0.0 --port=8000
