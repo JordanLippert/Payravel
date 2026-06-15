@@ -5,6 +5,8 @@
 <h1 align="center">Payravel — Frontend</h1>
 <p align="center">Nuxt 4 SPA for the Payravel expense reimbursement platform.</p>
 
+**Production:** https://payravel-frontend.vercel.app
+
 ---
 
 ## Stack

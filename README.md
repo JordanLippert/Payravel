@@ -9,11 +9,21 @@
 
 > 🇧🇷 [Leia em Português](README.pt-BR.md)
 
+## Live
+
+| | URL |
+|---|---|
+| Frontend | https://payravel-frontend.vercel.app |
+| API | https://payravel-backend.onrender.com |
+
+> Free tier — backend may take ~50s to wake up on first request.
+
 ## Stack
 
-- **Backend:** Laravel 12, PHP 8.2+, Laravel Passport
-- **Frontend:** Nuxt 4, Vue 3, Tailwind CSS 4, TypeScript, Pinia
-- **Infra:** Docker + docker-compose
+- **Backend:** Laravel 12, PHP 8.2+, Laravel Passport — deployed on [Render](https://render.com) (Docker)
+- **Frontend:** Nuxt 4, Vue 3, Tailwind CSS 4, TypeScript, Pinia — deployed on [Vercel](https://vercel.com)
+- **Database:** PostgreSQL on [Neon](https://neon.tech) (aws-sa-east-1)
+- **Local dev:** Docker + docker-compose
 
 ---
 
@@ -23,9 +33,7 @@
 # 1. Clone the repository
 git clone <repo-url> && cd payravel
 
-# 2. Configure Mailtrap credentials (for password reset emails)
-# Create a free account at https://mailtrap.io and copy your SMTP credentials
-# Add them to docker-compose.yml under MAIL_USERNAME and MAIL_PASSWORD
+# 2. Start everything
 
 # 3. Start everything
 docker-compose up --build

@@ -2,6 +2,8 @@
 
 Laravel 12 REST API for the Payravel expense reimbursement platform.
 
+**Production:** https://payravel-backend.onrender.com
+
 ---
 
 ## Stack
@@ -12,6 +14,8 @@ Laravel 12 REST API for the Payravel expense reimbursement platform.
 | Language | PHP 8.2+ |
 | Auth | Laravel Passport (OAuth2 Bearer) |
 | Queue | Laravel Scheduler (hourly expiry job) |
+| Hosting | Render (Docker, free tier) |
+| Database | Neon PostgreSQL (aws-sa-east-1) |
 
 ## Setup
 
