@@ -29,7 +29,7 @@ try {
 " 2>/dev/null)
 
 if [ -z "$OAUTH_COUNT" ] || [ "$OAUTH_COUNT" = "0" ]; then
-    php artisan passport:install --uuids
+    php artisan passport:install
     php artisan db:seed --force
 fi
 
