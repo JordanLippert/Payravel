@@ -35,7 +35,7 @@ class PaymentRequestServiceTest extends TestCase
     public function test_creates_request_with_correct_eur_amount(): void
     {
         $user = User::factory()->create(['currency' => 'BRL']);
-        $dto  = new CreatePaymentRequestDTO(amountLocal: 542.00);
+        $dto  = new CreatePaymentRequestDTO(amountLocal: 542.00, currency: 'BRL');
 
         $this->exchangeRateService
             ->shouldReceive('getRate')
@@ -55,7 +55,7 @@ class PaymentRequestServiceTest extends TestCase
     public function test_expires_at_is_48h_from_creation(): void
     {
         $user = User::factory()->create(['currency' => 'BRL']);
-        $dto  = new CreatePaymentRequestDTO(amountLocal: 100.00);
+        $dto  = new CreatePaymentRequestDTO(amountLocal: 100.00, currency: 'BRL');
 
         $this->exchangeRateService->shouldReceive('getRate')->andReturn($this->fakeRate());
 
@@ -68,7 +68,7 @@ class PaymentRequestServiceTest extends TestCase
     public function test_exchange_rate_fields_are_persisted(): void
     {
         $user = User::factory()->create(['currency' => 'BRL']);
-        $dto  = new CreatePaymentRequestDTO(amountLocal: 100.00);
+        $dto  = new CreatePaymentRequestDTO(amountLocal: 100.00, currency: 'BRL');
 
         $this->exchangeRateService->shouldReceive('getRate')->andReturn($this->fakeRate());
 

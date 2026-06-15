@@ -41,6 +41,7 @@ class PaymentRequestTest extends TestCase
         $response = $this->actingAs($employee, 'api')
             ->postJson('/api/payment-requests', [
                 'amount'      => 542.00,
+                'currency'    => 'BRL',
                 'description' => 'Office supplies',
             ]);
 
@@ -61,7 +62,7 @@ class PaymentRequestTest extends TestCase
         $employee = $this->employee();
 
         $response = $this->actingAs($employee, 'api')
-            ->postJson('/api/payment-requests', ['amount' => 542.00]);
+            ->postJson('/api/payment-requests', ['amount' => 542.00, 'currency' => 'BRL']);
 
         $response->assertStatus(201);
         $this->assertEqualsWithDelta(100.0, $response->json('data.amount_eur'), 0.01);
@@ -74,7 +75,7 @@ class PaymentRequestTest extends TestCase
         $employee = $this->employee();
 
         $this->actingAs($employee, 'api')
-            ->postJson('/api/payment-requests', ['amount' => 100])
+            ->postJson('/api/payment-requests', ['amount' => 100, 'currency' => 'BRL'])
             ->assertStatus(503);
     }
 

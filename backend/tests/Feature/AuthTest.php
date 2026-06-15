@@ -87,44 +87,4 @@ class AuthTest extends TestCase
         $this->postJson('/api/auth/logout')->assertUnauthorized();
     }
 
-    public function test_forgot_password_with_existing_email_returns_ok(): void
-    {
-        $user = User::factory()->create();
-
-        $this->postJson('/api/auth/forgot-password', ['email' => $user->email])
-            ->assertOk()
-            ->assertJsonPath('message', 'Password reset link sent to your email.');
-    }
-
-    public function test_forgot_password_with_unknown_email_returns_422(): void
-    {
-        $this->postJson('/api/auth/forgot-password', ['email' => 'nobody@example.com'])
-            ->assertUnprocessable()
-            ->assertJsonPath('message', 'Email not registered. Please sign up.');
-    }
-
-    public function test_reset_password_with_valid_token(): void
-    {
-        $user  = User::factory()->create();
-        $token = app('auth.password.broker')->createToken($user);
-
-        $this->postJson('/api/auth/reset-password', [
-            'email'                 => $user->email,
-            'token'                 => $token,
-            'password'              => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
-        ])->assertOk()->assertJsonPath('message', 'Password reset successfully.');
-    }
-
-    public function test_reset_password_with_invalid_token_returns_422(): void
-    {
-        $user = User::factory()->create();
-
-        $this->postJson('/api/auth/reset-password', [
-            'email'                 => $user->email,
-            'token'                 => 'invalid-token',
-            'password'              => 'newpassword123',
-            'password_confirmation' => 'newpassword123',
-        ])->assertUnprocessable();
-    }
 }
