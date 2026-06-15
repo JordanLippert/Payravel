@@ -1,6 +1,6 @@
 <!-- frontend/components/ui/UiSelect.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onUnmounted } from 'vue'
 import { onClickOutside } from '@vueuse/core'
 import { ChevronDown } from '@lucide/vue'
 
@@ -27,22 +27,50 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{ 'update:modelValue': [v: string] }>()
 
 const open = ref(false)
-const openAbove = ref(false)
 const containerRef = ref<HTMLElement>()
 const buttonRef = ref<HTMLButtonElement>()
+
+const dropdownStyle = ref<Record<string, string>>({})
 
 onClickOutside(containerRef, () => { open.value = false })
 
 const selected = computed(() => props.options.find(o => o.value === props.modelValue))
 
-function toggleOpen() {
-  if (!open.value && buttonRef.value) {
-    const rect = buttonRef.value.getBoundingClientRect()
-    const spaceBelow = window.innerHeight - rect.bottom
-    openAbove.value = spaceBelow < 260
+function calcPosition() {
+  if (!buttonRef.value) return
+  const rect = buttonRef.value.getBoundingClientRect()
+  const spaceBelow = window.innerHeight - rect.bottom
+  const openAbove = spaceBelow < 260
+
+  const base: Record<string, string> = {
+    position: 'fixed',
+    left: `${rect.left}px`,
+    width: `${rect.width}px`,
+    zIndex: '9999',
   }
-  open.value = !open.value
+
+  if (openAbove) {
+    dropdownStyle.value = { ...base, bottom: `${window.innerHeight - rect.top + 4}px` }
+  } else {
+    dropdownStyle.value = { ...base, top: `${rect.bottom + 4}px` }
+  }
 }
+
+function toggleOpen() {
+  if (open.value) {
+    open.value = false
+    return
+  }
+  calcPosition()
+  open.value = true
+}
+
+function onScroll() {
+  if (open.value) open.value = false
+}
+
+window.addEventListener('scroll', onScroll, true)
+onUnmounted(() => window.removeEventListener('scroll', onScroll, true))
 </script>
 
 <template>
@@ -72,31 +100,37 @@ function toggleOpen() {
           style="color: var(--text-muted);"
         />
       </button>
-
-      <Transition name="dropdown">
-        <div
-          v-if="open"
-          class="absolute left-0 right-0 z-20 rounded-md border-[0.5px] p-1 max-h-60 overflow-y-auto"
-          :class="openAbove ? 'bottom-[calc(100%+4px)]' : 'top-[calc(100%+4px)]'"
-          :style="{ background: 'var(--bg-elevated)', borderColor: 'var(--border-default)', boxShadow: 'var(--shadow-menu)' }"
-        >
-          <div
-            v-for="option in options"
-            :key="option.value"
-            class="flex items-center gap-2 px-2.5 py-2 rounded-sm text-sm font-sans cursor-pointer transition-colors duration-[120ms]"
-            :style="{ color: 'var(--text-primary)' }"
-            :class="option.value === modelValue ? 'bg-white/[0.06]' : 'hover:bg-white/[0.06]'"
-            @click="emit('update:modelValue', option.value); open = false"
-          >
-            <span v-if="option.flag" :class="`fi fi-${option.flag}`" style="width: 18px; height: 14px; border-radius: 2px;" />
-            <span>{{ option.label }}</span>
-            <span v-if="option.meta" class="ml-auto text-xs font-mono" style="color: var(--text-muted);">{{ option.meta }}</span>
-          </div>
-        </div>
-      </Transition>
     </div>
     <span v-if="hint" class="text-xs font-sans" style="color: var(--status-rejected-fg);">{{ hint }}</span>
   </div>
+
+  <Teleport to="body">
+    <Transition name="dropdown">
+      <div
+        v-if="open"
+        class="rounded-md border-[0.5px] p-1 max-h-60 overflow-y-auto"
+        :style="{
+          ...dropdownStyle,
+          background: 'var(--bg-elevated)',
+          borderColor: 'var(--border-default)',
+          boxShadow: 'var(--shadow-menu)',
+        }"
+      >
+        <div
+          v-for="option in options"
+          :key="option.value"
+          class="flex items-center gap-2 px-2.5 py-2 rounded-sm text-sm font-sans cursor-pointer transition-colors duration-[120ms]"
+          :style="{ color: 'var(--text-primary)' }"
+          :class="option.value === modelValue ? 'bg-white/[0.06]' : 'hover:bg-white/[0.06]'"
+          @click="emit('update:modelValue', option.value); open = false"
+        >
+          <span v-if="option.flag" :class="`fi fi-${option.flag}`" style="width: 18px; height: 14px; border-radius: 2px;" />
+          <span>{{ option.label }}</span>
+          <span v-if="option.meta" class="ml-auto text-xs font-mono" style="color: var(--text-muted);">{{ option.meta }}</span>
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <style scoped>
